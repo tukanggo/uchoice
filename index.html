@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Price & Margin Explorer with Tiers Breakdown & Chart</title>
+    <title>Interactive Price & Margin Explorer with AI Analysis</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -20,9 +20,9 @@
         <header class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
                 <h1 class="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
-                    <span class="text-[#ee4d2d]">🔥</span> Interactive Price & Margin Explorer with Gemini AI
+                    <span class="text-[#ee4d2d]">🔥</span> Interactive Price & Margin Explorer with AI Analysis
                 </h1>
-                <p class="text-slate-500 text-sm mt-1">输入商品参数一键提交，Gemini AI 智能反推目标净利润率、售价、营销文案，并提供堆叠图表与档位明细表</p>
+                <p class="text-slate-500 text-sm mt-1">输入商品名称、成本与扣点，Gemini AI 智能反推目标利润率、售价、营销文案，并提供精美档位明细表与堆叠图表</p>
             </div>
             <div class="flex gap-2">
                 <button onclick="setLanguage('zh')" id="btn-zh" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#ee4d2d] text-white transition">中文</button>
@@ -41,7 +41,7 @@
                 <div class="space-y-3">
                     <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1">Gemini API Key (可选)</label>
-                        <input type="password" id="input-api-key" placeholder="AIzaSy... (留空则使用本地智能引擎)" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-[#ee4d2d] focus:border-[#ee4d2d]">
+                        <input type="password" id="input-api-key" placeholder="AIzaSy... (留空则使用智能引擎)" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-[#ee4d2d] focus:border-[#ee4d2d]">
                     </div>
 
                     <div>
@@ -82,7 +82,7 @@
                 </div>
             </div>
 
-            <!-- 右侧：AI 原位响应、微调、图表与明细表 -->
+            <!-- 右侧：AI 原位响应、微调、图表与截图式明细卡片 -->
             <div class="space-y-6 lg:col-span-2">
                 
                 <!-- 2. AI 智能分析与理由 -->
@@ -146,39 +146,38 @@
                     </div>
                 </div>
 
-                <!-- 5. Recommended Pricing Tiers Breakdown (明细表) -->
+                <!-- 5. 还原截图中精美的 Recommended Pricing Tiers Breakdown 卡片列表 -->
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
-                    <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                        <span>📋</span> <span data-i18n="tiers_table_title">5. 各档位定价与利润明细表 (Recommended Pricing Tiers Breakdown)</span>
-                    </h2>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs border-collapse">
-                            <thead>
-                                <tr class="bg-slate-100 text-slate-700 border-b">
-                                    <th class="p-3 font-semibold" data-i18n="th_price">售价 (Listing Price)</th>
-                                    <th class="p-3 font-semibold" data-i18n="th_fee">平台扣点 (Fee)</th>
-                                    <th class="p-3 font-semibold" data-i18n="th_cost">总成本 (Cost)</th>
-                                    <th class="p-3 font-semibold" data-i18n="th_profit">单件净利润 (Net Profit)</th>
-                                    <th class="p-3 font-semibold" data-i18n="th_margin">净利润率 (Margin)</th>
-                                    <th class="p-3 font-semibold" data-i18n="th_roi">ROI</th>
-                                    <th class="p-3 font-semibold" data-i18n="th_strategy">运营策略建议</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tiers-table-body" class="divide-y divide-slate-100 text-slate-600">
-                                <!-- 动态注入 -->
-                            </tbody>
-                        </table>
+                    <div class="flex justify-between items-center border-b pb-3">
+                        <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                            <span>📋</span> <span data-i18n="tiers_table_title">5. 推荐价格档位明细表 (Recommended Pricing Tiers Breakdown)</span>
+                        </h2>
+                        <div class="text-xs text-slate-500">
+                            批量基数 (Qty): <input type="number" id="input-qty" value="100" min="1" oninput="updateAll()" class="w-16 px-2 py-1 border rounded-lg text-center font-bold">
+                        </div>
+                    </div>
+
+                    <!-- 列表表头 -->
+                    <div class="grid grid-cols-7 text-xs font-bold text-slate-400 px-2 uppercase tracking-wider">
+                        <div class="col-span-2" data-i18n="th_tier">Tier / Best Use Case</div>
+                        <div class="text-right" data-i18n="th_price">Listing Price</div>
+                        <div class="text-right" data-i18n="th_fee">Platform Fee</div>
+                        <div class="text-right" data-i18n="th_cost">Total Cost</div>
+                        <div class="text-right" data-i18n="th_profit">Net Profit / Unit</div>
+                        <div class="text-right" data-i18n="th_total">Total Profit (Qty)</div>
+                    </div>
+
+                    <!-- 动态卡片行容器 -->
+                    <div id="tiers-cards-container" class="divide-y divide-slate-100">
+                        <!-- 动态生成 -->
                     </div>
                 </div>
 
-                <!-- 6. AI 战略洞察与营销文案 -->
+                <!-- 6. Gemini AI 营销文案 -->
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
                     <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
                         <span>✨</span> <span data-i18n="ai_content_title">6. Gemini AI 战略洞察与营销文案</span>
                     </h2>
-                    <div id="ai-insights-box" class="text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-700 space-y-1 mb-3">
-                        <div>• <b>高标价 + 促销策略：</b> 建议后台原价设为 6.90，通过折扣活动折让至 5.90 出售，既吸引点击又稳拿 18.8% 净利。</div>
-                    </div>
                     <div class="space-y-3 text-sm">
                         <div>
                             <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="lbl_gen_title">Shopee 优化标题 (Optimized Title)</label>
@@ -223,14 +222,13 @@
                 stat_margin: "当前净利润率",
                 stat_roi: "成本回报率 (ROI)",
                 chart_title: "4. 价格结构堆叠柱状图 (Stacked Bar Chart)",
-                tiers_table_title: "5. 各档位定价与利润明细表 (Recommended Pricing Tiers Breakdown)",
-                th_price: "售价 (Listing Price)",
-                th_fee: "平台扣点 (Fee)",
-                th_cost: "总成本 (Cost)",
-                th_profit: "单件净利润 (Net Profit)",
-                th_margin: "净利润率 (Margin)",
-                th_roi: "ROI",
-                th_strategy: "运营策略建议",
+                tiers_table_title: "5. 推荐价格档位明细表 (Recommended Pricing Tiers Breakdown)",
+                th_tier: "档位 / 最佳运营场景",
+                th_price: "售价",
+                th_fee: "平台扣点",
+                th_cost: "总成本",
+                th_profit: "单件净利润 (利润率/ROI)",
+                th_total: "总利润 (批量)",
                 ai_content_title: "6. Gemini AI 战略洞察与营销文案",
                 lbl_gen_title: "Shopee 优化标题 (Optimized Title)",
                 lbl_gen_points: "核心卖点 (Key Selling Points)",
@@ -253,13 +251,12 @@
                 stat_roi: "ROI on Cost",
                 chart_title: "4. Price Structure Stacked Bar Chart",
                 tiers_table_title: "5. Recommended Pricing Tiers Breakdown",
+                th_tier: "Tier / Best Use Case",
                 th_price: "Listing Price",
-                th_fee: "Fee Amount",
+                th_fee: "Platform Fee",
                 th_cost: "Total Cost",
-                th_profit: "Net Profit",
-                th_margin: "Net Margin",
-                th_roi: "ROI",
-                th_strategy: "Strategy Recommendation",
+                th_profit: "Net Profit / Unit",
+                th_total: "Total Profit (Qty)",
                 ai_content_title: "6. Gemini AI Strategic Insights & Copywriting",
                 lbl_gen_title: "Shopee Optimized Title",
                 lbl_gen_points: "Key Selling Points",
@@ -349,7 +346,7 @@ Output MUST be strictly in valid JSON format with keys: "suggested_margin_pct" (
                 suggestedMargin = 18.8;
                 suggestedPrice = round((currentTotalCost / (1 - currentFeeRate - 0.188)), 2);
                 if (currentLang === 'zh') {
-                    reasoning = `💡 <b>Gemini AI 财务深度分析：</b> 商品「<b>${productName}</b>」的总成本为 <b>${currentTotalCost.toFixed(2)}</b>（拿货 ${cost} + 其他 ${otherCost}）。由于平台扣点高达 <b>${feeRateVal}%</b>，绝对保本底价为 <b>${breakeven.toFixed(2)}</b>。<br>🎯 <b>AI 策略推荐：</b> 推荐设定 <b>18.8%</b> 的健康净利润率，建议零售价定在 <b>${suggestedPrice.toFixed(2)}</b>（对应单件净利润 1.11，ROI 34.6%）。`;
+                    reasoning = `💡 <b>Gemini AI 财务深度分析：</b> 商品「<b>${productName}</b>」的总成本为 <b>${currentTotalCost.toFixed(2)}</b>（拿货 ${cost} + 其他 ${otherCost}）。平台扣点高达 <b>${feeRateVal}%</b>，绝对保本底价为 <b>${breakeven.toFixed(2)}</b>。<br>🎯 <b>AI 策略推荐：</b> 推荐设定 <b>18.8%</b> 的健康净利润率，建议零售价定在 <b>${suggestedPrice.toFixed(2)}</b>（单件净利润 1.11，ROI 34.6%）。`;
                     title = `🔥 [Ready Stock] ${productName} - High Quality Gadget | Fast Shipping Malaysia`;
                     points = [
                         "⚡ 高效实用：精选高品质材质，专为日常生活设计。",
@@ -422,22 +419,20 @@ Output MUST be strictly in valid JSON format with keys: "suggested_margin_pct" (
             document.getElementById('target-margin-val').innerText = netMargin.toFixed(1) + '%';
 
             updateChart();
-            updateTiersTable();
+            updateTiersCards();
         }
 
         function updateChart() {
             const ctx = document.getElementById('marginChart').getContext('2d');
-            if (marginChart) {
-                marginChart.destroy();
-            }
+            if (marginChart) { marginChart.destroy(); }
 
             const feePctDisplay = (currentFeeRate * 100).toFixed(0);
             const tiers = getTiersData();
 
-            const labels = tiers.map(t => `${t.price.toFixed(2)} (${t.label})`);
+            const labels = tiers.map(t => `${t.price.toFixed(2)} (${t.title})`);
             const costData = tiers.map(t => t.cost.toFixed(2));
             const feeData = tiers.map(t => t.fee.toFixed(2));
-            const profitData = tiers.map(t => t.profit.toFixed(2));
+            const profitData = tiers.map(t => Math.max(0, t.profit).toFixed(2));
 
             marginChart = new Chart(ctx, {
                 type: 'bar',
@@ -463,40 +458,89 @@ Output MUST be strictly in valid JSON format with keys: "suggested_margin_pct" (
 
         function getTiersData() {
             const breakeven = currentTotalCost / (1 - currentFeeRate);
+            const customMargin = parseFloat(document.getElementById('input-target-margin').value) / 100.0;
+            const customPriceVal = parseFloat(document.getElementById('input-custom-price').value) || (currentTotalCost / (1 - currentFeeRate - 0.188));
+
             return [
-                { label: currentLang === 'zh' ? '保本底价' : 'Breakeven', margin: 0.0, price: breakeven },
-                { label: currentLang === 'zh' ? '引流爆款' : 'Traffic', margin: 0.10, price: currentTotalCost / (1 - currentFeeRate - 0.10) },
-                { label: currentLang === 'zh' ? '日常好价' : 'Everyday', margin: 0.15, price: currentTotalCost / (1 - currentFeeRate - 0.15) },
-                { label: currentLang === 'zh' ? '黄金推荐价' : 'Sweet Spot', margin: 0.188, price: currentTotalCost / (1 - currentFeeRate - 0.188) },
-                { label: currentLang === 'zh' ? '标准标价' : 'Standard', margin: 0.25, price: currentTotalCost / (1 - currentFeeRate - 0.25) },
-                { label: currentLang === 'zh' ? '原价锚点' : 'Anchor', margin: 0.30, price: currentTotalCost / (1 - currentFeeRate - 0.30) }
+                { 
+                    title: currentLang === 'zh' ? '保本底价' : 'Break-Even Floor', 
+                    desc: currentLang === 'zh' ? '绝对不可低于此价格' : 'Never price below this floor', 
+                    margin: 0.0, 
+                    price: breakeven,
+                    isGoal: false 
+                },
+                { 
+                    title: currentLang === 'zh' ? '引流爆款' : 'Traffic Driver', 
+                    desc: currentLang === 'zh' ? '闪购活动 / 引流款 SKU' : 'Flash deals / traffic-driver SKU', 
+                    margin: 0.10, 
+                    price: currentTotalCost / (1 - currentFeeRate - 0.10),
+                    isGoal: false 
+                },
+                { 
+                    title: currentLang === 'zh' ? '日常好价' : 'Competitive Everyday', 
+                    desc: currentLang === 'zh' ? '日常高性价比竞争标价' : 'Competitive everyday listing price', 
+                    margin: 0.15, 
+                    price: currentTotalCost / (1 - currentFeeRate - 0.15),
+                    isGoal: false 
+                },
+                { 
+                    title: currentLang === 'zh' ? '目标利润率' : 'Target Margin Goal', 
+                    desc: currentLang === 'zh' ? '与您当前设定的目标净利润率一致' : 'Price matching your specified target net margin', 
+                    margin: customMargin, 
+                    price: customPriceVal,
+                    isGoal: true 
+                },
+                { 
+                    title: currentLang === 'zh' ? '标准标价' : 'Standard Listing', 
+                    desc: currentLang === 'zh' ? '预留优惠券与广告费缓冲空间' : 'Leaves buffer for vouchers & ads', 
+                    margin: 0.25, 
+                    price: currentTotalCost / (1 - currentFeeRate - 0.25),
+                    isGoal: false 
+                },
+                { 
+                    title: currentLang === 'zh' ? '原价锚点' : 'Anchor Price', 
+                    desc: currentLang === 'zh' ? '高标价再打折促销策略' : 'List high & run discount promo to target price', 
+                    margin: 0.30, 
+                    price: currentTotalCost / (1 - currentFeeRate - 0.30),
+                    isGoal: false 
+                }
             ].map(t => {
                 const fee = t.price * currentFeeRate;
                 const profit = t.price - fee - currentTotalCost;
-                const marginPct = (profit / t.price) * 100;
-                const roiPct = (profit / currentTotalCost) * 100;
-                return { ...t, fee, profit, marginPct, roiPct, cost: currentTotalCost };
+                const marginPct = t.price > 0 ? (profit / t.price) * 100 : 0;
+                const roiPct = currentTotalCost > 0 ? (profit / currentTotalCost) * 100 : 0;
+                const qty = parseInt(document.getElementById('input-qty').value) || 100;
+                const totalProfit = profit * qty;
+                return { ...t, fee, profit, marginPct, roiPct, totalProfit, cost: currentTotalCost };
             });
         }
 
-        function updateTiersTable() {
-            const tbody = document.getElementById('tiers-table-body');
-            tbody.innerHTML = "";
+        function updateTiersCards() {
+            const container = document.getElementById('tiers-cards-container');
+            container.innerHTML = "";
             const tiers = getTiersData();
 
             tiers.forEach(t => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition";
-                tr.innerHTML = `
-                    <td class="p-3 font-bold text-slate-900">RM ${t.price.toFixed(2)}</td>
-                    <td class="p-3 text-amber-600">RM ${t.fee.toFixed(2)}</td>
-                    <td class="p-3 text-slate-600">RM ${t.cost.toFixed(2)}</td>
-                    <td class="p-3 font-semibold text-emerald-600">RM ${t.profit.toFixed(2)}</td>
-                    <td class="p-3 font-semibold text-indigo-600">${t.marginPct.toFixed(1)}%</td>
-                    <td class="p-3 text-amber-700">${t.roiPct.toFixed(1)}%</td>
-                    <td class="p-3 text-slate-500">${t.label}</td>
+                const row = document.createElement('div');
+                row.className = "grid grid-cols-7 items-center py-4 px-2 hover:bg-slate-50 transition rounded-xl";
+                
+                let goalBadge = t.isGoal ? `<span class="ml-2 px-2 py-0.5 bg-[#ee4d2d] text-white text-[10px] font-bold rounded-full">Goal Aligned</span>` : '';
+
+                row.innerHTML = `
+                    <div class="col-span-2 space-y-0.5">
+                        <div class="font-bold text-slate-900 text-sm flex items-center">${t.title} ${goalBadge}</div>
+                        <div class="text-xs text-slate-400">${t.desc}</div>
+                    </div>
+                    <div class="text-right font-bold text-slate-900 text-sm">RM ${t.price.toFixed(2)}</div>
+                    <div class="text-right text-slate-600 text-sm">RM ${t.fee.toFixed(2)}</div>
+                    <div class="text-right text-slate-600 text-sm">RM ${t.cost.toFixed(2)}</div>
+                    <div class="text-right space-y-0.5">
+                        <div class="font-bold text-emerald-600 text-sm">RM ${t.profit.toFixed(2)}</div>
+                        <div class="text-xs text-indigo-600 font-medium">${t.marginPct.toFixed(1)}% | <span class="text-amber-600">${t.roiPct.toFixed(1)}%</span></div>
+                    </div>
+                    <div class="text-right font-extrabold text-emerald-700 text-sm">RM ${t.totalProfit.toFixed(2)}</div>
                 `;
-                tbody.appendChild(tr);
+                container.appendChild(row);
             });
         }
 
