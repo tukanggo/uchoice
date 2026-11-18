@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Price & Margin Explorer with AI Analysis & Chart</title>
+    <title>Interactive Price & Margin Explorer with Tiers Breakdown & Chart</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -22,7 +22,7 @@
                 <h1 class="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
                     <span class="text-[#ee4d2d]">🔥</span> Interactive Price & Margin Explorer with Gemini AI
                 </h1>
-                <p class="text-slate-500 text-sm mt-1">输入商品参数一键提交，Gemini AI 智能反推目标净利润率、售价、营销文案，并提供堆叠图表与策略洞察</p>
+                <p class="text-slate-500 text-sm mt-1">输入商品参数一键提交，Gemini AI 智能反推目标净利润率、售价、营销文案，并提供堆叠图表与档位明细表</p>
             </div>
             <div class="flex gap-2">
                 <button onclick="setLanguage('zh')" id="btn-zh" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#ee4d2d] text-white transition">中文</button>
@@ -82,7 +82,7 @@
                 </div>
             </div>
 
-            <!-- 右侧：AI 原位响应、图表与微调控制 -->
+            <!-- 右侧：AI 原位响应、微调、图表与明细表 -->
             <div class="space-y-6 lg:col-span-2">
                 
                 <!-- 2. AI 智能分析与理由 -->
@@ -136,32 +136,49 @@
                     </div>
                 </div>
 
-                <!-- 4. Stacked Bar Chart: Price Breakdown & Recommended Tiers -->
+                <!-- 4. Stacked Bar Chart: Price Breakdown -->
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
                     <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                        <span>📈</span> <span data-i18n="chart_title">4. 价格结构堆叠柱状图与档位明细 (Stacked Bar Chart)</span>
+                        <span>📈</span> <span data-i18n="chart_title">4. 价格结构堆叠柱状图 (Stacked Bar Chart)</span>
                     </h2>
-                    <div class="relative h-72 w-full">
+                    <div class="relative h-64 w-full">
                         <canvas id="marginChart"></canvas>
                     </div>
                 </div>
 
-                <!-- 5. AI Strategic Insights & Recommendations -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-3">
+                <!-- 5. Recommended Pricing Tiers Breakdown (明细表) -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
                     <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                        <span>🛡️</span> <span data-i18n="insights_title">5. AI 战略洞察与优惠券防范建议 (Strategic Insights)</span>
+                        <span>📋</span> <span data-i18n="tiers_table_title">5. 各档位定价与利润明细表 (Recommended Pricing Tiers Breakdown)</span>
                     </h2>
-                    <div id="ai-insights-box" class="text-sm text-slate-700 leading-relaxed bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
-                        <div>• <b>高标价 + 促销策略：</b> 建议将后台原价设为锚点（如 6.90），通过店铺满减或折扣券折让至 5.90 出售，既能吸引买家点击，又能稳拿 18.8% 净利。</div>
-                        <div>• <b>防范优惠券叠加吞噬利润：</b> 若叠加了平台或店铺满减券（如减 0.50），建议实付底线不低于 5.50（净利润率 14.8%），避免利润被过度稀释。</div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-700 border-b">
+                                    <th class="p-3 font-semibold" data-i18n="th_price">售价 (Listing Price)</th>
+                                    <th class="p-3 font-semibold" data-i18n="th_fee">平台扣点 (Fee)</th>
+                                    <th class="p-3 font-semibold" data-i18n="th_cost">总成本 (Cost)</th>
+                                    <th class="p-3 font-semibold" data-i18n="th_profit">单件净利润 (Net Profit)</th>
+                                    <th class="p-3 font-semibold" data-i18n="th_margin">净利润率 (Margin)</th>
+                                    <th class="p-3 font-semibold" data-i18n="th_roi">ROI</th>
+                                    <th class="p-3 font-semibold" data-i18n="th_strategy">运营策略建议</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tiers-table-body" class="divide-y divide-slate-100 text-slate-600">
+                                <!-- 动态注入 -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                <!-- 6. AI 生成的营销文案 -->
+                <!-- 6. AI 战略洞察与营销文案 -->
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
                     <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                        <span>✨</span> <span data-i18n="ai_content_title">6. Gemini AI 生成的商品文案与描述</span>
+                        <span>✨</span> <span data-i18n="ai_content_title">6. Gemini AI 战略洞察与营销文案</span>
                     </h2>
+                    <div id="ai-insights-box" class="text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-700 space-y-1 mb-3">
+                        <div>• <b>高标价 + 促销策略：</b> 建议后台原价设为 6.90，通过折扣活动折让至 5.90 出售，既吸引点击又稳拿 18.8% 净利。</div>
+                    </div>
                     <div class="space-y-3 text-sm">
                         <div>
                             <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="lbl_gen_title">Shopee 优化标题 (Optimized Title)</label>
@@ -205,9 +222,16 @@
                 stat_profit: "单件净利润 (Net Profit)",
                 stat_margin: "当前净利润率",
                 stat_roi: "成本回报率 (ROI)",
-                chart_title: "4. 价格结构堆叠柱状图与档位明细 (Stacked Bar Chart)",
-                insights_title: "5. AI 战略洞察与优惠券防范建议 (Strategic Insights)",
-                ai_content_title: "6. Gemini AI 生成的商品文案与描述",
+                chart_title: "4. 价格结构堆叠柱状图 (Stacked Bar Chart)",
+                tiers_table_title: "5. 各档位定价与利润明细表 (Recommended Pricing Tiers Breakdown)",
+                th_price: "售价 (Listing Price)",
+                th_fee: "平台扣点 (Fee)",
+                th_cost: "总成本 (Cost)",
+                th_profit: "单件净利润 (Net Profit)",
+                th_margin: "净利润率 (Margin)",
+                th_roi: "ROI",
+                th_strategy: "运营策略建议",
+                ai_content_title: "6. Gemini AI 战略洞察与营销文案",
                 lbl_gen_title: "Shopee 优化标题 (Optimized Title)",
                 lbl_gen_points: "核心卖点 (Key Selling Points)",
                 lbl_gen_desc: "详情页营销文案 (Marketing Description)"
@@ -228,8 +252,15 @@
                 stat_margin: "Net Margin %",
                 stat_roi: "ROI on Cost",
                 chart_title: "4. Price Structure Stacked Bar Chart",
-                insights_title: "5. AI Strategic Insights & Recommendations",
-                ai_content_title: "6. Gemini AI Copywriting & Description",
+                tiers_table_title: "5. Recommended Pricing Tiers Breakdown",
+                th_price: "Listing Price",
+                th_fee: "Fee Amount",
+                th_cost: "Total Cost",
+                th_profit: "Net Profit",
+                th_margin: "Net Margin",
+                th_roi: "ROI",
+                th_strategy: "Strategy Recommendation",
+                ai_content_title: "6. Gemini AI Strategic Insights & Copywriting",
                 lbl_gen_title: "Shopee Optimized Title",
                 lbl_gen_points: "Key Selling Points",
                 lbl_gen_desc: "Marketing Description"
@@ -247,7 +278,7 @@
                     el.innerText = i18n[lang][key];
                 }
             });
-            updateChart();
+            updateAll();
         }
 
         async function submitToGeminiAI() {
@@ -318,23 +349,23 @@ Output MUST be strictly in valid JSON format with keys: "suggested_margin_pct" (
                 suggestedMargin = 18.8;
                 suggestedPrice = round((currentTotalCost / (1 - currentFeeRate - 0.188)), 2);
                 if (currentLang === 'zh') {
-                    reasoning = `💡 <b>Gemini AI 财务深度分析：</b> 商品「<b>${productName}</b>」的总成本为 <b>${currentTotalCost.toFixed(2)}</b>（拿货 ${cost} + 其他 ${otherCost}）。由于平台扣点高达 <b>${feeRateVal}%</b>，若按简单加价将导致亏损，绝对保本底价为 <b>${breakeven.toFixed(2)}</b>。<br>🎯 <b>AI 策略推荐：</b> 推荐设定 <b>18.8%</b> 的健康净利润率，建议零售价定在 <b>${suggestedPrice.toFixed(2)}</b>（对应单件净利润 1.11，ROI 34.6%）。建议采用“高标价 + 优惠券”策略提升买家转化率。`;
+                    reasoning = `💡 <b>Gemini AI 财务深度分析：</b> 商品「<b>${productName}</b>」的总成本为 <b>${currentTotalCost.toFixed(2)}</b>（拿货 ${cost} + 其他 ${otherCost}）。由于平台扣点高达 <b>${feeRateVal}%</b>，绝对保本底价为 <b>${breakeven.toFixed(2)}</b>。<br>🎯 <b>AI 策略推荐：</b> 推荐设定 <b>18.8%</b> 的健康净利润率，建议零售价定在 <b>${suggestedPrice.toFixed(2)}</b>（对应单件净利润 1.11，ROI 34.6%）。`;
                     title = `🔥 [Ready Stock] ${productName} - High Quality Gadget | Fast Shipping Malaysia`;
                     points = [
                         "⚡ 高效实用：精选高品质材质，专为日常生活设计。",
                         "🛡️ 品质保障：严格质检，经久耐用。",
                         "🇲🇾 本地现货：马来西亚仓库闪电发货，售后无忧！"
                     ];
-                    description = `📦 【产品详情】\n欢迎光临！这款 ${productName} 是您提升生活品质的必备好物。现货供应，下单后 24 小时内极速发出！\n\n✨ 为什么选择我们？\n1. 100% 全新优质正品。\n2. 性价比极高，限时优惠中。\n\n🛒 限量秒杀，点击下方链接立即抢购！`;
+                    description = `📦 【产品详情】\n欢迎光临！这款 ${productName} 是您提升生活品质的必备好物。现货供应，下单后 24 小时内极速发出！`;
                 } else {
-                    reasoning = `💡 <b>Gemini AI Financial Analysis:</b> Product "<b>${productName}</b>" has a total cost of <b>${currentTotalCost.toFixed(2)}</b>. With a platform fee rate of <b>${feeRateVal}%</b>, your breakeven floor is <b>${breakeven.toFixed(2)}</b>.<br>🎯 <b>Strategy:</b> Targeting an <b>18.8%</b> net margin suggests an ideal selling price of <b>${suggestedPrice.toFixed(2)}</b>, securing healthy net profits after platform deductions.`;
+                    reasoning = `💡 <b>Gemini AI Financial Analysis:</b> Product "<b>${productName}</b>" has a total cost of <b>${currentTotalCost.toFixed(2)}</b>. With a platform fee rate of <b>${feeRateVal}%</b>, your breakeven floor is <b>${breakeven.toFixed(2)}</b>.<br>🎯 <b>Strategy:</b> Targeting an <b>18.8%</b> net margin suggests an ideal selling price of <b>${suggestedPrice.toFixed(2)}</b>.`;
                     title = `🔥 [Ready Stock] ${productName} - Premium Quality | Fast Shipping`;
                     points = [
                         "⚡ High Performance: Built with top-grade materials.",
                         "🛡️ Quality Assured: Rigorously tested for durability.",
                         "🇲🇾 Local Ready Stock: Fast shipping from Malaysia warehouse."
                     ];
-                    description = `📦 [Product Description]\nWelcome! The ${productName} is designed to elevate your daily routine. In stock and ready to ship within 24 hours!\n\n🛒 Grab yours now!`;
+                    description = `📦 [Product Description]\nWelcome! The ${productName} is designed to elevate your daily routine.`;
                 }
             }
 
@@ -347,8 +378,7 @@ Output MUST be strictly in valid JSON format with keys: "suggested_margin_pct" (
             document.getElementById('gen-points').innerHTML = points.map(p => `<div>• ${p}</div>`).join('');
             document.getElementById('gen-desc').innerText = description;
 
-            recalculateMetrics();
-            updateChart();
+            updateAll();
 
             btn.innerText = currentLang === 'zh' ? "提交给 Gemini AI 分析并推荐" : "Submit to Gemini AI";
             btn.disabled = false;
@@ -364,14 +394,14 @@ Output MUST be strictly in valid JSON format with keys: "suggested_margin_pct" (
                 : currentTotalCost;
 
             document.getElementById('input-custom-price').value = calculatedPrice.toFixed(2);
-            recalculateMetrics();
+            updateAll();
         }
 
         function onCustomPriceChange() {
-            recalculateMetrics();
+            updateAll();
         }
 
-        function recalculateMetrics() {
+        function updateAll() {
             const cost = parseFloat(document.getElementById('input-cost').value) || 0;
             const otherCost = parseFloat(document.getElementById('input-other').value) || 0;
             currentTotalCost = cost + otherCost;
@@ -390,6 +420,9 @@ Output MUST be strictly in valid JSON format with keys: "suggested_margin_pct" (
 
             document.getElementById('input-target-margin').value = netMargin.toFixed(1);
             document.getElementById('target-margin-val').innerText = netMargin.toFixed(1) + '%';
+
+            updateChart();
+            updateTiersTable();
         }
 
         function updateChart() {
@@ -399,53 +432,21 @@ Output MUST be strictly in valid JSON format with keys: "suggested_margin_pct" (
             }
 
             const feePctDisplay = (currentFeeRate * 100).toFixed(0);
+            const tiers = getTiersData();
 
-            // 标准心理档位计算
-            const multipliers = [
-                { label: currentLang === 'zh' ? '保本底价' : 'Breakeven', margin: 0.0 },
-                { label: currentLang === 'zh' ? '引流爆款' : 'Traffic', margin: 0.10 },
-                { label: currentLang === 'zh' ? '日常好价' : 'Everyday', margin: 0.15 },
-                { label: currentLang === 'zh' ? '黄金推荐价' : 'Sweet Spot', margin: 0.188 },
-                { label: currentLang === 'zh' ? '标准标价' : 'Standard', margin: 0.25 },
-                { label: currentLang === 'zh' ? '原价锚点' : 'Anchor', margin: 0.30 }
-            ];
-
-            const labels = [];
-            const costData = [];
-            const feeData = [];
-            const profitData = [];
-
-            multipliers.forEach(m => {
-                const p = (1 - currentFeeRate - m.margin) > 0 ? currentTotalCost / (1 - currentFeeRate - m.margin) : currentTotalCost;
-                const feeAmt = p * currentFeeRate;
-                const profitAmt = Math.max(0, p - feeAmt - currentTotalCost);
-
-                labels.push(`${p.toFixed(2)} (${m.label})`);
-                costData.push(currentTotalCost.toFixed(2));
-                feeData.push(feeAmt.toFixed(2));
-                profitData.push(profitAmt.toFixed(2));
-            });
+            const labels = tiers.map(t => `${t.price.toFixed(2)} (${t.label})`);
+            const costData = tiers.map(t => t.cost.toFixed(2));
+            const feeData = tiers.map(t => t.fee.toFixed(2));
+            const profitData = tiers.map(t => t.profit.toFixed(2));
 
             marginChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [
-                        {
-                            label: currentLang === 'zh' ? '商品总成本 (Cost)' : 'Total Cost',
-                            data: costData,
-                            backgroundColor: '#64748b'
-                        },
-                        {
-                            label: currentLang === 'zh' ? `平台扣点 ${feePctDisplay}% (Fee)` : `Platform Fee ${feePctDisplay}%`,
-                            data: feeData,
-                            backgroundColor: '#f59e0b'
-                        },
-                        {
-                            label: currentLang === 'zh' ? '单件净利润 (Net Profit)' : 'Net Profit',
-                            data: profitData,
-                            backgroundColor: '#10b981'
-                        }
+                        { label: currentLang === 'zh' ? '总成本 (Cost)' : 'Cost', data: costData, backgroundColor: '#64748b' },
+                        { label: currentLang === 'zh' ? `平台扣点 ${feePctDisplay}% (Fee)` : `Fee`, data: feeData, backgroundColor: '#f59e0b' },
+                        { label: currentLang === 'zh' ? '单件净利润 (Net Profit)' : 'Net Profit', data: profitData, backgroundColor: '#10b981' }
                     ]
                 },
                 options: {
@@ -455,10 +456,47 @@ Output MUST be strictly in valid JSON format with keys: "suggested_margin_pct" (
                         x: { stacked: true, grid: { display: false } },
                         y: { stacked: true, beginAtZero: true }
                     },
-                    plugins: {
-                        legend: { position: 'bottom' }
-                    }
+                    plugins: { legend: { position: 'bottom' } }
                 }
+            });
+        }
+
+        function getTiersData() {
+            const breakeven = currentTotalCost / (1 - currentFeeRate);
+            return [
+                { label: currentLang === 'zh' ? '保本底价' : 'Breakeven', margin: 0.0, price: breakeven },
+                { label: currentLang === 'zh' ? '引流爆款' : 'Traffic', margin: 0.10, price: currentTotalCost / (1 - currentFeeRate - 0.10) },
+                { label: currentLang === 'zh' ? '日常好价' : 'Everyday', margin: 0.15, price: currentTotalCost / (1 - currentFeeRate - 0.15) },
+                { label: currentLang === 'zh' ? '黄金推荐价' : 'Sweet Spot', margin: 0.188, price: currentTotalCost / (1 - currentFeeRate - 0.188) },
+                { label: currentLang === 'zh' ? '标准标价' : 'Standard', margin: 0.25, price: currentTotalCost / (1 - currentFeeRate - 0.25) },
+                { label: currentLang === 'zh' ? '原价锚点' : 'Anchor', margin: 0.30, price: currentTotalCost / (1 - currentFeeRate - 0.30) }
+            ].map(t => {
+                const fee = t.price * currentFeeRate;
+                const profit = t.price - fee - currentTotalCost;
+                const marginPct = (profit / t.price) * 100;
+                const roiPct = (profit / currentTotalCost) * 100;
+                return { ...t, fee, profit, marginPct, roiPct, cost: currentTotalCost };
+            });
+        }
+
+        function updateTiersTable() {
+            const tbody = document.getElementById('tiers-table-body');
+            tbody.innerHTML = "";
+            const tiers = getTiersData();
+
+            tiers.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition";
+                tr.innerHTML = `
+                    <td class="p-3 font-bold text-slate-900">RM ${t.price.toFixed(2)}</td>
+                    <td class="p-3 text-amber-600">RM ${t.fee.toFixed(2)}</td>
+                    <td class="p-3 text-slate-600">RM ${t.cost.toFixed(2)}</td>
+                    <td class="p-3 font-semibold text-emerald-600">RM ${t.profit.toFixed(2)}</td>
+                    <td class="p-3 font-semibold text-indigo-600">${t.marginPct.toFixed(1)}%</td>
+                    <td class="p-3 text-amber-700">${t.roiPct.toFixed(1)}%</td>
+                    <td class="p-3 text-slate-500">${t.label}</td>
+                `;
+                tbody.appendChild(tr);
             });
         }
 
@@ -467,8 +505,7 @@ Output MUST be strictly in valid JSON format with keys: "suggested_margin_pct" (
         }
 
         window.onload = function() {
-            recalculateMetrics();
-            updateChart();
+            updateAll();
         };
     </script>
 </body>
