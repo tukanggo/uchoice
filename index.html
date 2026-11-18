@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactive Price & Margin Explorer with AI Analysis</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <!-- Google Fonts: Inter & Noto Sans SC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Noto Sans SC', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#fff5f2',
+              100: '#ffe6df',
+              500: '#ee4d2d',
+              600: '#d73211',
+              700: '#b32409',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    body {
+      font-family: 'Inter', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    input[type="range"] {
+      accent-color: #ee4d2d;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-orange-100 selection:text-orange-900">
+
+  <!-- Top Navigation Header -->
+  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#ee4d2d] to-[#ff7337] flex items-center justify-center text-white font-bold shadow-sm shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="1" x2="12" y2="23"></line>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
+        </div>
+        <div class="truncate">
+          <h1 id="ui-app-title" class="text-base sm:text-lg font-bold text-slate-900 truncate">
+            Interactive Price & Margin Explorer with AI Analysis
+          </h1>
+          <p id="ui-app-subtitle" class="text-xs text-slate-500 hidden sm:block truncate">
+            Reverse-Margin Pricing Calculator & Dynamic AI Pricing Intelligence
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+        <!-- Download Standalone HTML Button -->
+        <button id="btn-download-html" type="button"
+          class="inline-flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer"
+          title="Download standalone index.html">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span id="ui-download-btn" class="hidden md:inline">Download index.html</span>
+        </button>
+
+        <!-- Reset Defaults -->
+        <button id="btn-reset" type="button"
+          class="inline-flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+            <path d="M3 3v5h5"></path>
+          </svg>
+          <span id="ui-reset-btn" class="hidden sm:inline">Reset</span>
+        </button>
+
+        <!-- Bilingual Toggle -->
+        <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200/80" role="group" aria-label="Language Switch">
+          <button id="lang-en" type="button"
+            class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white text-slate-900 shadow-xs transition cursor-pointer">
+            EN
+          </button>
+          <button id="lang-zh" type="button"
+            class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer">
+            中文
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Toast notification container -->
+  <div id="toast-banner" class="fixed bottom-4 right-4 z-50 hidden transform transition-all duration-300">
+    <div class="bg-slate-900 text-white text-sm px-4 py-3 rounded-xl shadow-lg flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+      <span id="toast-message">Action completed</span>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- AI Dynamic Pricing Intelligence Card -->
+    <section class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-700/60 relative overflow-hidden">
+      <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-[#ee4d2d]/10 rounded-full blur-2xl pointer-events-none"></div>
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 relative z-10">
+        <div class="space-y-2">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-orange-300 text-xs font-semibold">
+            <span class="w-2 h-2 rounded-full bg-orange-400 animate-pulse"></span>
+            <span id="ai-badge-text">AI Pricing Intelligence & Margin Analysis</span>
+          </div>
+          <div id="ai-analysis-content" class="text-sm sm:text-base text-slate-100 leading-relaxed space-y-1">
+            <!-- Dynamically populated AI narrative -->
+          </div>
+        </div>
+        <div class="shrink-0 bg-white/10 backdrop-blur-xs rounded-xl px-4 py-3 border border-white/10 flex flex-col gap-1">
+          <span id="ai-formula-title" class="text-[11px] font-semibold text-orange-300 uppercase tracking-wider">
+            Reverse-Margin Formula
+          </span>
+          <code class="text-xs text-white bg-black/30 px-2.5 py-1 rounded font-mono">
+            Price = Cost ÷ (1 − Fee% − Target Margin%)
+          </code>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 Top KPI Summary Cards -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- KPI 1: Breakeven Floor -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs hover:border-slate-300 transition">
+        <div class="flex items-center justify-between">
+          <span id="kpi1-label" class="text-xs font-semibold uppercase tracking-wider text-slate-500">Break-Even Floor</span>
+          <span class="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-rose-50 text-rose-600">0.0% Margin</span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="kpi1-value" class="text-2xl sm:text-3xl font-extrabold text-slate-900">0.00</span>
+          <span id="kpi1-sub" class="text-xs text-slate-500">Min safe price</span>
+        </div>
+        <p id="kpi1-desc" class="mt-2 text-xs text-slate-500">
+          Fee: <span id="kpi1-fee" class="font-medium text-slate-700">0.00</span> · Cost: <span id="kpi1-cost" class="font-medium text-slate-700">0.00</span>
+        </p>
+      </div>
+
+      <!-- KPI 2: Target Margin Price -->
+      <div class="bg-white rounded-2xl p-5 border-2 border-[#ee4d2d]/30 shadow-xs relative overflow-hidden">
+        <div class="flex items-center justify-between">
+          <span id="kpi2-label" class="text-xs font-semibold uppercase tracking-wider text-[#ee4d2d]">Target Margin Price</span>
+          <span id="kpi2-badge" class="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-orange-50 text-[#ee4d2d]">Goal Aligned</span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="kpi2-value" class="text-2xl sm:text-3xl font-extrabold text-slate-900">0.00</span>
+          <span id="kpi2-margin" class="text-xs font-semibold text-emerald-600">0.0% Margin</span>
+        </div>
+        <p id="kpi2-desc" class="mt-2 text-xs text-slate-500">
+          Net Profit: <span id="kpi2-profit" class="font-semibold text-slate-800">0.00</span> / unit · ROI: <span id="kpi2-roi" class="font-semibold text-slate-800">0.0%</span>
+        </p>
+      </div>
+
+      <!-- KPI 3: Custom Target Price Profit -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs hover:border-slate-300 transition">
+        <div class="flex items-center justify-between">
+          <span id="kpi3-label" class="text-xs font-semibold uppercase tracking-wider text-slate-500">Your Target Price</span>
+          <span id="kpi3-status-badge" class="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-50 text-emerald-700">Profitable</span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="kpi3-value" class="text-2xl sm:text-3xl font-extrabold text-slate-900">0.00</span>
+          <span id="kpi3-profit-unit" class="text-sm font-bold text-emerald-600">+0.00 / unit</span>
+        </div>
+        <p id="kpi3-desc" class="mt-2 text-xs text-slate-500">
+          Margin: <span id="kpi3-margin" class="font-semibold text-slate-800">0.0%</span> · ROI: <span id="kpi3-roi" class="font-semibold text-slate-800">0.0%</span>
+        </p>
+      </div>
+
+      <!-- KPI 4: Order Volume Simulator -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs hover:border-slate-300 transition">
+        <div class="flex items-center justify-between">
+          <span id="kpi4-label" class="text-xs font-semibold uppercase tracking-wider text-slate-500">Projected Total Profit</span>
+          <span id="kpi4-qty-badge" class="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-indigo-50 text-indigo-700">100 units</span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="kpi4-value" class="text-2xl sm:text-3xl font-extrabold text-indigo-600">0.00</span>
+          <span id="kpi4-rev" class="text-xs text-slate-500">Rev: 0.00</span>
+        </div>
+        <p id="kpi4-desc" class="mt-2 text-xs text-slate-500">
+          Total Fees: <span id="kpi4-fees" class="font-medium text-slate-700">0.00</span> · Cost: <span id="kpi4-cost" class="font-medium text-slate-700">0.00</span>
+        </p>
+      </div>
+    </section>
+
+    <!-- Main Grid: Left Controls Panel + Right Interactive Chart -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- Left Panel: Input Controls (4 cols on desktop) -->
+      <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 sm:p-6 space-y-5">
+        <div class="border-b border-slate-100 pb-3">
+          <h2 id="ui-controls-title" class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-[#ee4d2d]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="4" y1="21" x2="4" y2="14"></line>
+              <line x1="4" y1="10" x2="4" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12" y2="3"></line>
+              <line x1="20" y1="21" x2="20" y2="16"></line>
+              <line x1="20" y1="12" x2="20" y2="3"></line>
+              <line x1="1" y1="14" x2="7" y2="14"></line>
+              <line x1="9" y1="8" x2="15" y2="8"></line>
+              <line x1="17" y1="16" x2="23" y2="16"></line>
+            </svg>
+            <span>Cost & Fee Parameters</span>
+          </h2>
+          <p id="ui-controls-sub" class="text-xs text-slate-500 mt-1">Adjust inputs to recalculate all tiers in real time</p>
+        </div>
+
+        <!-- Product Name -->
+        <div>
+          <label for="input-product-name" id="lbl-product-name" class="block text-xs font-semibold text-slate-700 mb-1.5">
+            Product Name
+          </label>
+          <input id="input-product-name" type="text" value="Smiling Touch Light / 微笑触摸灯"
+            class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ee4d2d]/30 focus:border-[#ee4d2d] transition" />
+        </div>
+
+        <!-- Product Cost & Platform Fee Grid -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="input-cost" id="lbl-cost" class="block text-xs font-semibold text-slate-700 mb-1.5">
+              Product Cost
+            </label>
+            <input id="input-cost" type="number" step="0.05" min="0.01" value="3.20"
+              class="w-full px-3.5 py-2.5 text-sm font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ee4d2d]/30 focus:border-[#ee4d2d] transition" />
+          </div>
+          <div>
+            <label for="input-fee-rate" id="lbl-fee-rate" class="block text-xs font-semibold text-slate-700 mb-1.5">
+              Platform Fee (%)
+            </label>
+            <input id="input-fee-rate" type="number" step="0.5" min="0" max="90" value="27.0"
+              class="w-full px-3.5 py-2.5 text-sm font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ee4d2d]/30 focus:border-[#ee4d2d] transition" />
+          </div>
+        </div>
+
+        <!-- Target Net Margin (%) -->
+        <div>
+          <label for="input-target-margin" id="lbl-target-margin" class="block text-xs font-semibold text-slate-700 mb-1.5">
+            Target Net Margin (%)
+          </label>
+          <input id="input-target-margin" type="number" step="0.5" min="1" max="80" value="18.8"
+            class="w-full px-3.5 py-2.5 text-sm font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ee4d2d]/30 focus:border-[#ee4d2d] transition" />
+        </div>
+
+        <!-- Alternative / Other Costs -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label for="input-extra-cost" id="lbl-extra-cost" class="text-xs font-semibold text-slate-700">
+              Other Costs / Packaging / Ads (per unit)
+            </label>
+            <span id="val-extra-cost-badge" class="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">0.00</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <input id="slider-extra-cost" type="range" min="0" max="5" step="0.05" value="0.00" class="w-full h-2 bg-slate-200 rounded-lg cursor-pointer" />
+            <input id="input-extra-cost" type="number" min="0" step="0.05" value="0.00"
+              class="w-20 px-2.5 py-1.5 text-xs font-semibold text-right bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#ee4d2d]" />
+          </div>
+          <div class="flex justify-between text-[11px] text-slate-400 mt-1">
+            <span id="lbl-total-unit-cost">Total Unit Cost: <strong>3.20</strong></span>
+            <button id="btn-test-buffer" type="button" class="text-[#ee4d2d] hover:underline font-medium cursor-pointer">
+              +0.30 Ad/Pack test
+            </button>
+          </div>
+        </div>
+
+        <!-- Custom Target Selling Price -->
+        <div class="pt-2 border-t border-slate-100">
+          <div class="flex items-center justify-between mb-1.5">
+            <label for="input-target-price" id="lbl-target-price" class="text-xs font-semibold text-slate-700">
+              Custom Target Selling Price
+            </label>
+            <span id="val-target-price-badge" class="text-xs font-bold text-[#ee4d2d] bg-orange-50 px-2 py-0.5 rounded-md">5.90</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <input id="slider-target-price" type="range" min="1" max="30" step="0.10" value="5.90" class="w-full h-2 bg-slate-200 rounded-lg cursor-pointer" />
+            <input id="input-target-price" type="number" min="0.10" step="0.10" value="5.90"
+              class="w-20 px-2.5 py-1.5 text-xs font-bold text-right bg-orange-50/50 border border-orange-200 rounded-lg focus:outline-none focus:border-[#ee4d2d]" />
+          </div>
+          <!-- Quick Psychological Price Pills -->
+          <div id="quick-price-pills" class="flex flex-wrap gap-1.5 mt-2.5">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Order Volume Simulator -->
+        <div class="pt-2 border-t border-slate-100">
+          <div class="flex items-center justify-between mb-1.5">
+            <label for="input-order-qty" id="lbl-order-qty" class="text-xs font-semibold text-slate-700">
+              Order Volume Simulator (Units)
+            </label>
+            <span id="val-order-qty-badge" class="text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md">100</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <input id="slider-order-qty" type="range" min="1" max="2000" step="10" value="100" class="w-full h-2 bg-slate-200 rounded-lg cursor-pointer" />
+            <input id="input-order-qty" type="number" min="1" step="1" value="100"
+              class="w-20 px-2.5 py-1.5 text-xs font-semibold text-right bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel: Stacked Bar Chart (8 cols on desktop) -->
+      <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 sm:p-6 flex flex-col justify-between">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+          <div>
+            <h2 id="ui-chart-title" class="text-base sm:text-lg font-bold text-slate-900">
+              Stacked Bar Chart: Price Breakdown
+            </h2>
+            <p id="ui-chart-subtitle" class="text-xs text-slate-500 mt-0.5">
+              Hover or click any price tier bar to inspect exact fee, net profit, margin %, and ROI on cost
+            </p>
+          </div>
+
+          <!-- Chart Mode Toggle -->
+          <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200/80 self-start sm:self-auto">
+            <button id="btn-chart-stacked" type="button"
+              class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white text-slate-900 shadow-xs transition cursor-pointer">
+              Stacked Breakdown
+            </button>
+            <button id="btn-chart-margin" type="button"
+              class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer">
+              Margin & ROI %
+            </button>
+          </div>
+        </div>
+
+        <!-- Chart Canvas Wrapper -->
+        <div class="relative w-full h-[340px] sm:h-[390px] mt-4">
+          <canvas id="marginChart"></canvas>
+        </div>
+
+        <!-- Interactive Selected Bar Inspection Strip -->
+        <div id="chart-inspector" class="mt-4 bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded-md bg-slate-900 text-white font-semibold" id="insp-tier-name">Selected Tier</span>
+            <span id="insp-hint" class="text-slate-500">Click any bar above or row below to test price</span>
+          </div>
+          <div class="flex flex-wrap items-center gap-4">
+            <div><span class="text-slate-500" id="insp-lbl-cost">Total Cost:</span> <strong id="insp-val-cost" class="text-slate-800">0.00</strong></div>
+            <div><span class="text-slate-500" id="insp-lbl-fee">Platform Fee:</span> <strong id="insp-val-fee" class="text-amber-600">0.00</strong></div>
+            <div><span class="text-slate-500" id="insp-lbl-profit">Net Profit:</span> <strong id="insp-val-profit" class="text-emerald-600">0.00</strong></div>
+            <div><span class="text-slate-500" id="insp-lbl-margin">Net Margin:</span> <strong id="insp-val-margin" class="text-emerald-600">0.0%</strong></div>
+            <div><span class="text-slate-500" id="insp-lbl-roi">ROI on Cost:</span> <strong id="insp-val-roi" class="text-indigo-600">0.0%</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Detailed Pricing Tiers Breakdown Table -->
+    <section class="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+      <div class="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <h2 id="ui-table-title" class="text-base sm:text-lg font-bold text-slate-900">
+            Recommended Pricing Tiers Breakdown
+          </h2>
+          <p id="ui-table-subtitle" class="text-xs text-slate-500 mt-0.5">
+            Click any row to apply that price point to your Target Price simulator
+          </p>
+        </div>
+        <span id="ui-table-badge" class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 bg-slate-100 px-3 py-1 rounded-full self-start sm:self-auto">
+          Platform Fee Deducted on Final Selling Price
+        </span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              <th id="th-tier" class="py-3.5 px-4 sm:px-6">Tier / Best Use Case</th>
+              <th id="th-price" class="py-3.5 px-3 text-right">Listing Price</th>
+              <th id="th-fee" class="py-3.5 px-3 text-right">Platform Fee</th>
+              <th id="th-cost" class="py-3.5 px-3 text-right">Total Cost</th>
+              <th id="th-profit" class="py-3.5 px-3 text-right">Net Profit / Unit</th>
+              <th id="th-margin" class="py-3.5 px-3 text-right">Net Margin %</th>
+              <th id="th-roi" class="py-3.5 px-3 text-right">ROI on Cost %</th>
+              <th id="th-total-profit" class="py-3.5 px-4 sm:px-6 text-right">Total Profit (Qty)</th>
+            </tr>
+          </thead>
+          <tbody id="pricing-table-body" class="divide-y divide-slate-100 text-sm">
+            <!-- Dynamically rendered rows -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- AI Actionable Strategy Cards -->
+    <section class="space-y-3">
+      <h2 id="ui-strategy-heading" class="text-base sm:text-lg font-bold text-slate-900 px-1">
+        AI Strategic Insights & Recommendations
+      </h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Strategy 1: Anchor and Discount -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-2.5">
+          <div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-lg bg-orange-100 text-[#ee4d2d] font-bold text-xs flex items-center justify-center">1</span>
+            <h3 id="strat1-title" class="text-sm font-bold text-slate-900">Anchor-and-Discount Setup</h3>
+          </div>
+          <p id="strat1-body" class="text-xs text-slate-600 leading-relaxed">
+            Loading strategy insights...
+          </p>
+        </div>
+
+        <!-- Strategy 2: Voucher Stacking Protection -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-2.5">
+          <div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 font-bold text-xs flex items-center justify-center">2</span>
+            <h3 id="strat2-title" class="text-sm font-bold text-slate-900">Protect Against Voucher Stacking</h3>
+          </div>
+          <p id="strat2-body" class="text-xs text-slate-600 leading-relaxed">
+            Loading voucher risk analysis...
+          </p>
+        </div>
+
+        <!-- Strategy 3: Packaging & Ad Buffer -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-2.5">
+          <div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center">3</span>
+            <h3 id="strat3-title" class="text-sm font-bold text-slate-900">Alternative Cost Buffer</h3>
+          </div>
+          <p id="strat3-body" class="text-xs text-slate-600 leading-relaxed">
+            Loading cost buffer adjustments...
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 mt-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+      <p id="ui-footer-left">
+        Interactive Price & Margin Explorer with AI Analysis · Ready for GitHub Pages (<code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">index.html</code>)
+      </p>
+      <p id="ui-footer-right">
+        Formula: <code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">Net Profit = Price × (1 − Fee%) − Total Cost</code>
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    // =========================================================================
+    // 1. STATE & BILINGUAL DICTIONARY (EN / 中文)
+    // =========================================================================
+    const state = {
+      lang: 'en', // 'en' | 'zh'
+      productName: 'Smiling Touch Light / 微笑触摸灯',
+      productCost: 3.20,
+      feeRatePct: 27.0,
+      targetNetMarginPct: 18.8,
+      extraCost: 0.00,
+      targetPrice: 5.90,
+      orderQty: 100,
+      chartMode: 'stacked' // 'stacked' | 'margin'
+    };
+
+    const i18n = {
+      en: {
+        appTitle: 'Interactive Price & Margin Explorer with AI Analysis',
+        appSubtitle: 'Reverse-Margin Pricing Calculator & Dynamic AI Pricing Intelligence',
+        downloadBtn: 'Download index.html',
+        resetBtn: 'Reset',
+        aiBadge: 'AI Pricing Intelligence & Margin Analysis',
+        formulaTitle: 'Reverse-Margin Formula',
+        kpi1Label: 'Break-Even Floor',
+        kpi1Sub: 'Min safe price',
+        kpi2Label: 'Target Margin Price',
+        kpi2Badge: 'Goal Aligned',
+        kpi3Label: 'Your Target Price',
+        kpi4Label: 'Projected Total Profit',
+        controlsTitle: 'Cost & Fee Parameters',
+        controlsSub: 'Adjust inputs to recalculate all tiers in real time',
+        lblProductName: 'Product Name',
+        lblCost: 'Product Cost',
+        lblFeeRate: 'Platform Fee (%)',
+        lblTargetMargin: 'Target Net Margin (%)',
+        lblExtraCost: 'Other Costs / Packaging / Ads (per unit)',
+        lblTargetPrice: 'Custom Target Selling Price',
+        lblOrderQty: 'Order Volume Simulator (Units)',
+        chartTitle: 'Stacked Bar Chart: Price Breakdown',
+        chartSubtitle: 'Hover or click any price tier bar to inspect exact fee, net profit, margin %, and ROI on cost',
+        btnStacked: 'Stacked Breakdown',
+        btnMargin: 'Margin & ROI %',
+        inspHint: 'Click any bar above or row below to test price',
+        inspCost: 'Total Cost:',
+        inspFee: 'Platform Fee:',
+        inspProfit: 'Net Profit:',
+        inspMargin: 'Net Margin:',
+        inspRoi: 'ROI on Cost:',
+        tableTitle: 'Recommended Pricing Tiers Breakdown',
+        tableSubtitle: 'Click any row to apply that price point to your Target Price simulator',
+        tableBadge: 'Platform Fee Deducted on Final Selling Price',
+        thTier: 'Tier / Best Use Case',
+        thPrice: 'Listing Price',
+        thFee: 'Platform Fee',
+        thCost: 'Total Cost',
+        thProfit: 'Net Profit / Unit',
+        thMargin: 'Net Margin %',
+        thRoi: 'ROI on Cost %',
+        thTotalProfit: 'Total Profit (Qty)',
+        strategyHeading: 'AI Strategic Insights & Recommendations',
+        strat1Title: 'Anchor-and-Discount Setup',
+        strat2Title: 'Protect Against Voucher Stacking',
+        strat3Title: 'Alternative Cost Buffer',
+        tierLabels: {
+          breakeven: 'Break-Even Floor',
+          breakevenDesc: 'Never price below this floor',
+          traffic: 'Traffic Driver',
+          trafficDesc: 'Flash deals / traffic-driver SKU',
+          competitive: 'Competitive Everyday',
+          competitiveDesc: 'Competitive everyday listing price',
+          targetAligned: 'Target Margin Goal',
+          targetAlignedDesc: 'Price matching your specified target net margin',
+          standard: 'Standard Listing',
+          standardDesc: 'Leaves buffer for vouchers & ads',
+          anchor: 'Anchor Price',
+          anchorDesc: 'List high & run discount promo to target price',
+          custom: 'Your Custom Price',
+          customDesc: 'Active custom target simulation'
+        },
+        chartSeries: {
+          cost: 'Total Unit Cost',
+          fee: 'Platform Fee',
+          profit: 'Net Profit',
+          marginLine: 'Net Profit Margin (%)',
+          roiLine: 'ROI on Cost (%)'
+        },
+        statusProfitable: 'Profitable',
+        statusBreakeven: 'Break-Even',
+        statusLoss: 'Loss Warning',
+        unitsSuffix: 'units',
+        toastReset: 'Reset to default parameters (Cost 3.20, Fee 27%, Target Margin 18.8%)',
+        toastDownloaded: 'Downloaded standalone index.html!',
+        toastSelectedPrice: 'Target price updated to'
+      },
+      zh: {
+        appTitle: '交互式价格与利润分析器（含 AI 智能分析）',
+        appSubtitle: '反推利润率定价计算器与动态 AI 定价策略智能洞察',
+        downloadBtn: '下载 index.html',
+        resetBtn: '重置默认',
+        aiBadge: 'AI 定价智能洞察与利润分析',
+        formulaTitle: '反推利润率公式',
+        kpi1Label: '保本底价 (Break-Even)',
+        kpi1Sub: '最低不亏本底线',
+        kpi2Label: '目标利润率匹配价',
+        kpi2Badge: '目标达成',
+        kpi3Label: '当前自定义售价',
+        kpi4Label: '预估总净利润',
+        controlsTitle: '成本与平台扣点参数',
+        controlsSub: '实时调整参数，自动重算所有心理价位与利润率',
+        lblProductName: '商品名称',
+        lblCost: '商品拿货成本',
+        lblFeeRate: '平台总扣点率 (%)',
+        lblTargetMargin: '目标净利润率 (%)',
+        lblExtraCost: '其他成本 / 包材 / 广告分摊 (单件)',
+        lblTargetPrice: '自定义目标售价',
+        lblOrderQty: '预估销量模拟器 (件)',
+        chartTitle: '堆叠柱状图：价格构成拆解',
+        chartSubtitle: '悬停或点击任意价格柱状图，查看精确扣点、单件净利润、净利润率与投资回报率 (ROI)',
+        btnStacked: '价格构成堆叠图',
+        btnMargin: '净利率与 ROI 曲线',
+        inspHint: '点击上方柱条或下方表格行即可应用该售价',
+        inspCost: '总成本：',
+        inspFee: '平台扣点：',
+        inspProfit: '单件净利：',
+        inspMargin: '净利润率：',
+        inspRoi: '成本回报率 ROI：',
+        tableTitle: '各价位定价与利润明细表',
+        tableSubtitle: '点击任意一行即可将该价格填入左侧“自定义目标售价”进行模拟',
+        tableBadge: '平台扣点按最终成交售价直接扣除',
+        thTier: '价位档次 / 适用运营策略',
+        thPrice: '前台售价',
+        thFee: '平台扣点',
+        thCost: '单件总成本',
+        thProfit: '单件净利润',
+        thMargin: '净利润率 %',
+        thRoi: '成本回报率 ROI %',
+        thTotalProfit: '模拟总利润',
+        strategyHeading: 'AI 智能策略洞察与优化建议',
+        strat1Title: '高标价 + 折扣促销锚点策略',
+        strat2Title: '防范优惠券叠加吞噬利润',
+        strat3Title: '替代成本与广告费缓冲',
+        tierLabels: {
+          breakeven: '保本底价',
+          breakevenDesc: '绝对不可低于此保本底线',
+          traffic: '引流爆款价',
+          trafficDesc: '闪购活动 / 店铺引流款定价',
+          competitive: '日常竞争价',
+          competitiveDesc: '日常高性价比走量定价',
+          targetAligned: '目标利润匹配价',
+          targetAlignedDesc: '严格符合您设定的目标净利润率',
+          standard: '常规标准价',
+          standardDesc: '预留充足的优惠券与广告投放空间',
+          anchor: '原价锚点',
+          anchorDesc: '后台高标原价，配合折扣活动降至目标价',
+          custom: '当前自定义价',
+          customDesc: '您当前正在模拟的目标售价'
+        },
+        chartSeries: {
+          cost: '单件总成本',
+          fee: '平台扣点费用',
+          profit: '单件净利润',
+          marginLine: '净利润率 (%)',
+          roiLine: '成本回报率 ROI (%)'
+        },
+        statusProfitable: '盈利中',
+        statusBreakeven: '刚好保本',
+        statusLoss: '亏损预警',
+        unitsSuffix: '件',
+        toastReset: '已重置为默认参数（拿货成本 3.20，扣点 27%，目标净利率 18.8%）',
+        toastDownloaded: '已下载独立版 index.html！',
+        toastSelectedPrice: '已将自定义售价切换为'
+      }
+    };
+
+    // =========================================================================
+    // 2. CORE PRICING & REVERSE-MARGIN FORMULAS
+    // =========================================================================
+    function formatNum(num) {
+      if (!isFinite(num) || isNaN(num)) return '0.00';
+      return num.toFixed(2);
+    }
+
+    function formatPct(num) {
+      if (!isFinite(num) || isNaN(num)) return '0.0%';
+      return num.toFixed(1) + '%';
+    }
+
+    function snapPsychologicalPrice(rawPrice, ending) {
+      const floorInt = Math.floor(rawPrice);
+      const candidate = floorInt + ending;
+      if (candidate >= rawPrice - 0.22) {
+        return Number(candidate.toFixed(2));
+      }
+      return Number((floorInt + 1 + ending).toFixed(2));
+    }
+
+    function calculateMetricsForPrice(sellingPrice, totalCost, feeRate) {
+      const platformFee = sellingPrice * feeRate;
+      const netProfit = sellingPrice - platformFee - totalCost;
+      const netMarginPct = sellingPrice > 0 ? (netProfit / sellingPrice) * 100 : 0;
+      const roiPct = totalCost > 0 ? (netProfit / totalCost) * 100 : 0;
+
+      return {
+        sellingPrice: Number(sellingPrice.toFixed(2)),
+        totalCost: Number(totalCost.toFixed(2)),
+        platformFee: Number(platformFee.toFixed(2)),
+        netProfit: Number(netProfit.toFixed(2)),
+        netMarginPct: Number(netMarginPct.toFixed(1)),
+        roiPct: Number(roiPct.toFixed(1))
+      };
+    }
+
+    function computeAllTiers() {
+      const totalCost = Math.max(0.01, state.productCost + state.extraCost);
+      const feeRate = Math.min(0.95, Math.max(0, state.feeRatePct / 100));
+      const targetMargin = Math.min(0.90, Math.max(0, state.targetNetMarginPct / 100));
+
+      // 1. Breakeven Price: Total Cost / (1 - Fee Rate)
+      const rawBreakeven = totalCost / (1 - feeRate);
+      const breakevenPrice = Number(rawBreakeven.toFixed(2));
+
+      // 2. Target Margin Price via Reverse Formula: Cost / (1 - Fee% - Target Margin%)
+      const safeDenominator = Math.max(0.05, 1 - feeRate - targetMargin);
+      const rawTargetAligned = totalCost / safeDenominator;
+      let targetAlignedPrice = Number(rawTargetAligned.toFixed(2));
+      if (targetAlignedPrice <= breakevenPrice) targetAlignedPrice = Number((breakevenPrice + 0.80).toFixed(2));
+
+      // Derive surrounding psychological tiers based on targetAlignedPrice or totalCost
+      const trafficRaw = totalCost / Math.max(0.05, 1 - feeRate - 0.075);
+      const competitiveRaw = totalCost / Math.max(0.05, 1 - feeRate - 0.12);
+      const standardRaw = totalCost / Math.max(0.05, 1 - feeRate - (targetMargin + 0.05));
+      const anchorRaw = totalCost / Math.max(0.05, 1 - feeRate - (targetMargin + 0.10));
+
+      let trafficPrice = snapPsychologicalPrice(trafficRaw, 0.90);
+      if (trafficPrice <= breakevenPrice) trafficPrice = Number((breakevenPrice + 0.40).toFixed(2));
+
+      let competitivePrice = snapPsychologicalPrice(competitiveRaw, 0.50);
+      if (competitivePrice <= trafficPrice) competitivePrice = Number((trafficPrice + 0.50).toFixed(2));
+
+      if (targetAlignedPrice <= competitivePrice) {
+        targetAlignedPrice = Number((competitivePrice + 0.50).toFixed(2));
+      }
+
+      let standardPrice = snapPsychologicalPrice(standardRaw, 0.50);
+      if (standardPrice <= targetAlignedPrice) standardPrice = Number((targetAlignedPrice + 0.60).toFixed(2));
+
+      let anchorPrice = snapPsychologicalPrice(anchorRaw, 0.90);
+      if (anchorPrice <= standardPrice) anchorPrice = Number((standardPrice + 0.50).toFixed(2));
+
+      const t = i18n[state.lang].tierLabels;
+
+      const baseTiers = [
+        {
+          id: 'breakeven',
+          name: t.breakeven,
+          desc: t.breakevenDesc,
+          isRecommended: false,
+          isTargetAligned: false,
+          isCustom: false,
+          ...calculateMetricsForPrice(breakevenPrice, totalCost, feeRate)
+        },
+        {
+          id: 'traffic',
+          name: t.traffic,
+          desc: t.trafficDesc,
+          isRecommended: false,
+          isTargetAligned: false,
+          isCustom: false,
+          ...calculateMetricsForPrice(trafficPrice, totalCost, feeRate)
+        },
+        {
+          id: 'competitive',
+          name: t.competitive,
+          desc: t.competitiveDesc,
+          isRecommended: false,
+          isTargetAligned: false,
+          isCustom: false,
+          ...calculateMetricsForPrice(competitivePrice, totalCost, feeRate)
+        },
+        {
+          id: 'targetAligned',
+          name: t.targetAligned,
+          desc: t.targetAlignedDesc,
+          isRecommended: true,
+          isTargetAligned: true,
+          isCustom: false,
+          ...calculateMetricsForPrice(targetAlignedPrice, totalCost, feeRate)
+        },
+        {
+          id: 'standard',
+          name: t.standard,
+          desc: t.standardDesc,
+          isRecommended: false,
+          isTargetAligned: false,
+          isCustom: false,
+          ...calculateMetricsForPrice(standardPrice, totalCost, feeRate)
+        },
+        {
+          id: 'anchor',
+          name: t.anchor,
+          desc: t.anchorDesc,
+          isRecommended: false,
+          isTargetAligned: false,
+          isCustom: false,
+          ...calculateMetricsForPrice(anchorPrice, totalCost, feeRate)
+        }
+      ];
+
+      const customMetrics = {
+        id: 'custom',
+        name: t.custom,
+        desc: t.customDesc,
+        isRecommended: false,
+        isTargetAligned: false,
+        isCustom: true,
+        ...calculateMetricsForPrice(state.targetPrice, totalCost, feeRate)
+      };
+
+      return {
+        totalCost,
+        feeRate,
+        targetMargin,
+        breakeven: baseTiers[0],
+        targetAligned: baseTiers[3],
+        competitive: baseTiers[2],
+        anchor: baseTiers[5],
+        baseTiers,
+        customMetrics
+      };
+    }
+
+    // =========================================================================
+    // 3. CHART.JS RENDERING & INSPECTOR
+    // =========================================================================
+    let marginChartInstance = null;
+
+    function renderChart(tiersForChart) {
+      const ctx = document.getElementById('marginChart').getContext('2d');
+      const t = i18n[state.lang];
+
+      const labels = tiersForChart.map(item => `${formatNum(item.sellingPrice)} (${item.name})`);
+
+      if (marginChartInstance) {
+        marginChartInstance.destroy();
+      }
+
+      if (state.chartMode === 'stacked') {
+        const costData = tiersForChart.map(item => item.totalCost);
+        const feeData = tiersForChart.map(item => item.platformFee);
+        const profitData = tiersForChart.map(item => Math.max(0, item.netProfit));
+
+        marginChartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: t.chartSeries.cost,
+                data: costData,
+                backgroundColor: '#64748b',
+                borderRadius: { bottomLeft: 6, bottomRight: 6 },
+                borderSkipped: false
+              },
+              {
+                label: `${t.chartSeries.fee} (${state.feeRatePct.toFixed(1)}%)`,
+                data: feeData,
+                backgroundColor: '#f59e0b'
+              },
+              {
+                label: t.chartSeries.profit,
+                data: profitData,
+                backgroundColor: tiersForChart.map(item =>
+                  item.netProfit < 0 ? '#ef4444' : (item.isCustom ? '#4f46e5' : (item.isTargetAligned ? '#ee4d2d' : '#10b981'))
+                ),
+                borderRadius: { topLeft: 6, topRight: 6 },
+                borderSkipped: false
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+              mode: 'index',
+              intersect: false
+            },
+            onClick: (event, elements) => {
+              if (elements && elements.length > 0) {
+                const idx = elements[0].index;
+                const selected = tiersForChart[idx];
+                updateInspector(selected);
+                setTargetPrice(selected.sellingPrice);
+              }
+            },
+            plugins: {
+              legend: {
+                position: 'top',
+                labels: {
+                  usePointStyle: true,
+                  pointStyle: 'circle',
+                  padding: 16,
+                  font: { family: "'Inter', 'Noto Sans SC', sans-serif", size: 12, weight: '600' }
+                }
+              },
+              tooltip: {
+                backgroundColor: '#0f172a',
+                titleFont: { family: "'Inter', 'Noto Sans SC', sans-serif", size: 13, weight: 'bold' },
+                bodyFont: { family: "'Inter', 'Noto Sans SC', sans-serif", size: 12 },
+                padding: 12,
+                cornerRadius: 10,
+                callbacks: {
+                  title: (items) => {
+                    const idx = items[0].dataIndex;
+                    const tier = tiersForChart[idx];
+                    return `${formatNum(tier.sellingPrice)} — ${tier.name}`;
+                  },
+                  label: (context) => {
+                    const idx = context.dataIndex;
+                    const tier = tiersForChart[idx];
+                    if (context.datasetIndex === 0) {
+                      return ` ${t.chartSeries.cost}: ${formatNum(tier.totalCost)}`;
+                    }
+                    if (context.datasetIndex === 1) {
+                      return ` ${t.chartSeries.fee} (${state.feeRatePct.toFixed(1)}%): ${formatNum(tier.platformFee)}`;
+                    }
+                    return ` ${t.chartSeries.profit}: ${formatNum(tier.netProfit)}`;
+                  },
+                  afterBody: (items) => {
+                    const idx = items[0].dataIndex;
+                    const tier = tiersForChart[idx];
+                    return [
+                      ` ──────────────────────`,
+                      ` ${t.inspMargin} ${formatPct(tier.netMarginPct)}`,
+                      ` ${t.inspRoi} ${formatPct(tier.roiPct)}`
+                    ];
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                stacked: true,
+                grid: { display: false },
+                ticks: {
+                  font: { family: "'Inter', 'Noto Sans SC', sans-serif", size: 11, weight: '600' },
+                  color: '#334155'
+                }
+              },
+              y: {
+                stacked: true,
+                beginAtZero: true,
+                grid: { color: '#f1f5f9' },
+                ticks: {
+                  font: { family: "'Inter', sans-serif", size: 11 },
+                  color: '#64748b',
+                  callback: (val) => Number(val).toFixed(2)
+                }
+              }
+            }
+          }
+        });
+      } else {
+        // Margin & ROI % Comparison Line View
+        marginChartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: t.chartSeries.marginLine,
+                data: tiersForChart.map(item => item.netMarginPct),
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                borderWidth: 3,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                fill: true,
+                tension: 0.25
+              },
+              {
+                label: t.chartSeries.roiLine,
+                data: tiersForChart.map(item => item.roiPct),
+                borderColor: '#4f46e5',
+                backgroundColor: 'rgba(79, 70, 229, 0.08)',
+                borderWidth: 3,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                fill: false,
+                tension: 0.25
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+              mode: 'index',
+              intersect: false
+            },
+            onClick: (event, elements) => {
+              if (elements && elements.length > 0) {
+                const idx = elements[0].index;
+                const selected = tiersForChart[idx];
+                updateInspector(selected);
+                setTargetPrice(selected.sellingPrice);
+              }
+            },
+            plugins: {
+              legend: {
+                position: 'top',
+                labels: {
+                  usePointStyle: true,
+                  padding: 16,
+                  font: { family: "'Inter', 'Noto Sans SC', sans-serif", size: 12, weight: '600' }
+                }
+              },
+              tooltip: {
+                backgroundColor: '#0f172a',
+                padding: 12,
+                cornerRadius: 10,
+                callbacks: {
+                  afterBody: (items) => {
+                    const idx = items[0].dataIndex;
+                    const tier = tiersForChart[idx];
+                    return [
+                      ` ──────────────────────`,
+                      ` ${t.thPrice}: ${formatNum(tier.sellingPrice)}`,
+                      ` ${t.inspProfit} ${formatNum(tier.netProfit)}`
+                    ];
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: {
+                  font: { family: "'Inter', 'Noto Sans SC', sans-serif", size: 11, weight: '600' },
+                  color: '#334155'
+                }
+              },
+              y: {
+                grid: { color: '#f1f5f9' },
+                ticks: {
+                  font: { family: "'Inter', sans-serif", size: 11 },
+                  color: '#64748b',
+                  callback: (val) => `${val}%`
+                }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    function updateInspector(tier) {
+      document.getElementById('insp-tier-name').textContent = `${formatNum(tier.sellingPrice)} (${tier.name})`;
+      document.getElementById('insp-val-cost').textContent = formatNum(tier.totalCost);
+      document.getElementById('insp-val-fee').textContent = formatNum(tier.platformFee);
+
+      const profitEl = document.getElementById('insp-val-profit');
+      profitEl.textContent = formatNum(tier.netProfit);
+      profitEl.className = tier.netProfit < 0 ? 'text-rose-600 font-bold' : 'text-emerald-600 font-bold';
+
+      const marginEl = document.getElementById('insp-val-margin');
+      marginEl.textContent = formatPct(tier.netMarginPct);
+      marginEl.className = tier.netMarginPct < 0 ? 'text-rose-600 font-bold' : 'text-emerald-600 font-bold';
+
+      document.getElementById('insp-val-roi').textContent = formatPct(tier.roiPct);
+    }
+
+    // =========================================================================
+    // 4. DYNAMIC AI PRICING INTELLIGENCE & NARRATIVE GENERATOR
+    // =========================================================================
+    function generateAiAnalysis(data) {
+      const productName = state.productName || 'Product';
+      const cost = data.totalCost;
+      const feePct = state.feeRatePct;
+      const targetMargin = state.targetNetMarginPct;
+      const targetPrice = data.targetAligned.sellingPrice;
+      const netProfit = data.targetAligned.netProfit;
+      const breakeven = data.breakeven.sellingPrice;
+      const naivePrice = cost * (1 + feePct / 100);
+      const naiveReceive = naivePrice * (1 - feePct / 100);
+      const naiveLoss = cost - naiveReceive;
+
+      const contentEl = document.getElementById('ai-analysis-content');
+
+      if (state.lang === 'en') {
+        contentEl.innerHTML = `
+          <p>
+            🤖 <strong>AI Pricing Intelligence for <em>${escapeHtml(productName)}</em>:</strong>
+            To achieve your target net margin of <strong>${targetMargin.toFixed(1)}%</strong> under a <strong>${feePct.toFixed(1)}%</strong> platform fee and <strong>${formatNum(cost)}</strong> total unit cost, the reverse-margin formula establishes your optimal listing price at <strong>${formatNum(targetPrice)}</strong>, yielding <strong>${formatNum(netProfit)}</strong> net profit per unit.
+          </p>
+          <p class="text-xs text-slate-300 mt-1">
+            ⚠️ <em>Naive Markup Warning:</em> Multiplying cost (${formatNum(cost)}) by (1 + ${feePct.toFixed(1)}%) = ${formatNum(naivePrice)} results in a net loss of <strong>${formatNum(naiveLoss)}</strong> per unit due to fee deduction on final sale price.
+          </p>
+        `;
+      } else {
+        contentEl.innerHTML = `
+          <p>
+            🤖 <strong><em>${escapeHtml(productName)}</em> AI 定价智能分析：</strong>
+            在 <strong>${feePct.toFixed(1)}%</strong> 平台扣点与 <strong>${formatNum(cost)}</strong> 单件总成本下，为达成您设定的 <strong>${targetMargin.toFixed(1)}%</strong> 目标净利润率，反推计算得出最佳售价为 <strong>${formatNum(targetPrice)}</strong>，单件可稳健收获 <strong>${formatNum(netProfit)}</strong> 净利。
+          </p>
+          <p class="text-xs text-slate-300 mt-1">
+            ⚠️ <em>防亏损警示：</em> 若简单按成本 (${formatNum(cost)}) × (1 + ${feePct.toFixed(1)}%) = ${formatNum(naivePrice)} 定价，由于平台按最终成交价扣点，每卖出一单将反而亏损 <strong>${formatNum(naiveLoss)}</strong>！
+          </p>
+        `;
+      }
+    }
+
+    // =========================================================================
+    // 5. RENDER ALL UI COMPONENTS
+    // =========================================================================
+    function renderAll() {
+      const t = i18n[state.lang];
+      const data = computeAllTiers();
+
+      // Static UI text elements
+      document.getElementById('ui-app-title').textContent = t.appTitle;
+      document.getElementById('ui-app-subtitle').textContent = t.appSubtitle;
+      document.getElementById('ui-download-btn').textContent = t.downloadBtn;
+      document.getElementById('ui-reset-btn').textContent = t.resetBtn;
+      document.getElementById('ai-badge-text').textContent = t.aiBadge;
+      document.getElementById('ai-formula-title').textContent = t.formulaTitle;
+
+      // Generate AI Analysis narrative
+      generateAiAnalysis(data);
+
+      // KPI Cards
+      document.getElementById('kpi1-label').textContent = t.kpi1Label;
+      document.getElementById('kpi1-sub').textContent = t.kpi1Sub;
+      document.getElementById('kpi1-value').textContent = formatNum(data.breakeven.sellingPrice);
+      document.getElementById('kpi1-fee').textContent = formatNum(data.breakeven.platformFee);
+      document.getElementById('kpi1-cost').textContent = formatNum(data.totalCost);
+
+      document.getElementById('kpi2-label').textContent = t.kpi2Label;
+      document.getElementById('kpi2-badge').textContent = t.kpi2Badge;
+      document.getElementById('kpi2-value').textContent = formatNum(data.targetAligned.sellingPrice);
+      document.getElementById('kpi2-margin').textContent = `+${formatPct(data.targetAligned.netMarginPct)} Margin`;
+      document.getElementById('kpi2-profit').textContent = formatNum(data.targetAligned.netProfit);
+      document.getElementById('kpi2-roi').textContent = formatPct(data.targetAligned.roiPct);
+
+      document.getElementById('kpi3-label').textContent = t.kpi3Label;
+      document.getElementById('kpi3-value').textContent = formatNum(data.customMetrics.sellingPrice);
+      const customProfitEl = document.getElementById('kpi3-profit-unit');
+      const customBadgeEl = document.getElementById('kpi3-status-badge');
+      if (data.customMetrics.netProfit > 0.005) {
+        customProfitEl.textContent = `+${formatNum(data.customMetrics.netProfit)} / unit`;
+        customProfitEl.className = 'text-sm font-bold text-emerald-600';
+        customBadgeEl.textContent = t.statusProfitable;
+        customBadgeEl.className = 'px-2 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-50 text-emerald-700';
+      } else if (Math.abs(data.customMetrics.netProfit) <= 0.005) {
+        customProfitEl.textContent = `0.00 / unit`;
+        customProfitEl.className = 'text-sm font-bold text-slate-600';
+        customBadgeEl.textContent = t.statusBreakeven;
+        customBadgeEl.className = 'px-2 py-0.5 text-[11px] font-semibold rounded-full bg-slate-100 text-slate-700';
+      } else {
+        customProfitEl.textContent = `${formatNum(data.customMetrics.netProfit)} / unit`;
+        customProfitEl.className = 'text-sm font-bold text-rose-600';
+        customBadgeEl.textContent = t.statusLoss;
+        customBadgeEl.className = 'px-2 py-0.5 text-[11px] font-semibold rounded-full bg-rose-50 text-rose-700';
+      }
+      document.getElementById('kpi3-margin').textContent = formatPct(data.customMetrics.netMarginPct);
+      document.getElementById('kpi3-roi').textContent = formatPct(data.customMetrics.roiPct);
+
+      // KPI 4: Order Volume Simulator
+      const totalRev = data.customMetrics.sellingPrice * state.orderQty;
+      const totalProfit = data.customMetrics.netProfit * state.orderQty;
+      const totalFees = data.customMetrics.platformFee * state.orderQty;
+      const totalOrderCost = data.totalCost * state.orderQty;
+
+      document.getElementById('kpi4-label').textContent = t.kpi4Label;
+      document.getElementById('kpi4-qty-badge').textContent = `${state.orderQty} ${t.unitsSuffix}`;
+      const kpi4ValEl = document.getElementById('kpi4-value');
+      kpi4ValEl.textContent = formatNum(totalProfit);
+      kpi4ValEl.className = totalProfit < 0
+        ? 'text-2xl sm:text-3xl font-extrabold text-rose-600'
+        : 'text-2xl sm:text-3xl font-extrabold text-indigo-600';
+      document.getElementById('kpi4-rev').textContent = `Rev: ${formatNum(totalRev)}`;
+      document.getElementById('kpi4-fees').textContent = formatNum(totalFees);
+      document.getElementById('kpi4-cost').textContent = formatNum(totalOrderCost);
+
+      // Controls panel text
+      document.getElementById('ui-controls-title').querySelector('span').textContent = t.controlsTitle;
+      document.getElementById('ui-controls-sub').textContent = t.controlsSub;
+      document.getElementById('lbl-product-name').textContent = t.lblProductName;
+      document.getElementById('lbl-cost').textContent = t.lblCost;
+      document.getElementById('lbl-fee-rate').textContent = t.lblFeeRate;
+      document.getElementById('lbl-target-margin').textContent = t.lblTargetMargin;
+      document.getElementById('lbl-extra-cost').textContent = t.lblExtraCost;
+      document.getElementById('lbl-target-price').textContent = t.lblTargetPrice;
+      document.getElementById('lbl-order-qty').textContent = t.lblOrderQty;
+
+      document.getElementById('val-extra-cost-badge').textContent = formatNum(state.extraCost);
+      document.getElementById('lbl-total-unit-cost').innerHTML = state.lang === 'en'
+        ? `Total Unit Cost: <strong>${formatNum(data.totalCost)}</strong>`
+        : `单件总成本：<strong>${formatNum(data.totalCost)}</strong>`;
+
+      document.getElementById('val-target-price-badge').textContent = formatNum(state.targetPrice);
+      document.getElementById('val-order-qty-badge').textContent = state.orderQty;
+
+      // Quick psychological price pills
+      const pillsContainer = document.getElementById('quick-price-pills');
+      pillsContainer.innerHTML = '';
+      data.baseTiers.forEach(tier => {
+        const isActive = Math.abs(tier.sellingPrice - state.targetPrice) < 0.01;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = formatNum(tier.sellingPrice);
+        btn.className = isActive
+          ? 'px-2.5 py-1 text-xs font-bold rounded-lg bg-[#ee4d2d] text-white shadow-xs cursor-pointer transition'
+          : 'px-2.5 py-1 text-xs font-medium rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer transition';
+        btn.onclick = () => {
+          setTargetPrice(tier.sellingPrice);
+          showToast(`${t.toastSelectedPrice} ${formatNum(tier.sellingPrice)}`);
+        };
+        pillsContainer.appendChild(btn);
+      });
+
+      // Chart Section Labels
+      document.getElementById('ui-chart-title').textContent = t.chartTitle;
+      document.getElementById('ui-chart-subtitle').textContent = t.chartSubtitle;
+      document.getElementById('btn-chart-stacked').textContent = t.btnStacked;
+      document.getElementById('btn-chart-margin').textContent = t.btnMargin;
+
+      document.getElementById('insp-hint').textContent = t.inspHint;
+      document.getElementById('insp-lbl-cost').textContent = t.inspCost;
+      document.getElementById('insp-lbl-fee').textContent = t.inspFee;
+      document.getElementById('insp-lbl-profit').textContent = t.inspProfit;
+      document.getElementById('insp-lbl-margin').textContent = t.inspMargin;
+      document.getElementById('insp-lbl-roi').textContent = t.inspRoi;
+
+      updateInspector(data.customMetrics);
+
+      // Build chart tiers array
+      const chartTiers = [...data.baseTiers];
+      const matchesExisting = chartTiers.some(item => Math.abs(item.sellingPrice - data.customMetrics.sellingPrice) < 0.01);
+      if (!matchesExisting) {
+        chartTiers.push(data.customMetrics);
+        chartTiers.sort((a, b) => a.sellingPrice - b.sellingPrice);
+      }
+      renderChart(chartTiers);
+
+      // Detailed Table
+      document.getElementById('ui-table-title').textContent = t.tableTitle;
+      document.getElementById('ui-table-subtitle').textContent = t.tableSubtitle;
+      document.getElementById('ui-table-badge').textContent = t.tableBadge;
+      document.getElementById('th-tier').textContent = t.thTier;
+      document.getElementById('th-price').textContent = t.thPrice;
+      document.getElementById('th-fee').textContent = t.thFee;
+      document.getElementById('th-cost').textContent = t.thCost;
+      document.getElementById('th-profit').textContent = t.thProfit;
+      document.getElementById('th-margin').textContent = t.thMargin;
+      document.getElementById('th-roi').textContent = t.thRoi;
+      document.getElementById('th-total-profit').textContent = `${t.thTotalProfit} (${state.orderQty})`;
+
+      const tbody = document.getElementById('pricing-table-body');
+      tbody.innerHTML = '';
+
+      chartTiers.forEach(tier => {
+        const isSelected = Math.abs(tier.sellingPrice - state.targetPrice) < 0.01;
+        const tr = document.createElement('tr');
+        tr.className = isSelected
+          ? 'bg-orange-50/70 hover:bg-orange-50 cursor-pointer transition'
+          : 'hover:bg-slate-50 cursor-pointer transition';
+
+        tr.onclick = () => {
+          setTargetPrice(tier.sellingPrice);
+          showToast(`${t.toastSelectedPrice} ${formatNum(tier.sellingPrice)}`);
+        };
+
+        let badgeHtml = '';
+        if (tier.isRecommended) {
+          badgeHtml = `<span class="ml-2 px-2 py-0.5 text-[10px] font-bold rounded-full bg-[#ee4d2d] text-white">${t.kpi2Badge}</span>`;
+        } else if (tier.isCustom) {
+          badgeHtml = `<span class="ml-2 px-2 py-0.5 text-[10px] font-bold rounded-full bg-indigo-600 text-white">Custom</span>`;
+        }
+
+        const tierTotalProfit = tier.netProfit * state.orderQty;
+        const profitColor = tier.netProfit < 0 ? 'text-rose-600' : (tier.netProfit === 0 ? 'text-slate-600' : 'text-emerald-600');
+
+        tr.innerHTML = `
+          <td class="py-3.5 px-4 sm:px-6">
+            <div class="font-bold text-slate-900 flex items-center flex-wrap">
+              <span>${tier.name}</span>
+              ${badgeHtml}
+            </div>
+            <div class="text-xs text-slate-500 mt-0.5">${tier.desc}</div>
+          </td>
+          <td class="py-3.5 px-3 text-right font-extrabold text-slate-900">${formatNum(tier.sellingPrice)}</td>
+          <td class="py-3.5 px-3 text-right text-slate-600">${formatNum(tier.platformFee)}</td>
+          <td class="py-3.5 px-3 text-right text-slate-600">${formatNum(tier.totalCost)}</td>
+          <td class="py-3.5 px-3 text-right font-bold ${profitColor}">${formatNum(tier.netProfit)}</td>
+          <td class="py-3.5 px-3 text-right font-semibold ${profitColor}">${formatPct(tier.netMarginPct)}</td>
+          <td class="py-3.5 px-3 text-right font-semibold text-indigo-600">${formatPct(tier.roiPct)}</td>
+          <td class="py-3.5 px-4 sm:px-6 text-right font-bold ${profitColor}">${formatNum(tierTotalProfit)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // AI Actionable Strategies
+      document.getElementById('ui-strategy-heading').textContent = t.strategyHeading;
+      document.getElementById('strat1-title').textContent = t.strat1Title;
+      document.getElementById('strat2-title').textContent = t.strat2Title;
+      document.getElementById('strat3-title').textContent = t.strat3Title;
+
+      const discountPct = ((data.anchor.sellingPrice - data.targetAligned.sellingPrice) / data.anchor.sellingPrice) * 100;
+      const voucherSample = 0.50;
+      const postVoucherPrice = Math.max(0.10, data.targetAligned.sellingPrice - voucherSample);
+      const postVoucherProfit = calculateMetricsForPrice(postVoucherPrice, data.totalCost, data.feeRate).netProfit;
+
+      const bufferAdd = 0.30;
+      const bufferedCost = data.totalCost + bufferAdd;
+      const priceShiftNeeded = bufferAdd / Math.max(0.05, 1 - data.feeRate);
+      const adjustedTargetPrice = data.targetAligned.sellingPrice + priceShiftNeeded;
+
+      if (state.lang === 'en') {
+        document.getElementById('strat1-body').innerHTML =
+          `List at <strong>${formatNum(data.anchor.sellingPrice)}</strong> and apply a <strong>${Math.max(5, discountPct).toFixed(1)}%</strong> discount promotion to land at <strong>${formatNum(data.targetAligned.sellingPrice)}</strong>. Buyers see an eye-catching discount badge while you clear <strong>${formatNum(data.targetAligned.netProfit)}</strong> net profit per unit.`;
+
+        document.getElementById('strat2-body').innerHTML =
+          `Offering a <strong>${formatNum(voucherSample)}</strong> shop voucher on top of <strong>${formatNum(data.targetAligned.sellingPrice)}</strong> drops profit from <strong>${formatNum(data.targetAligned.netProfit)}</strong> to <strong>${formatNum(postVoucherProfit)}</strong>. Keep your post-voucher checkout floor at or above <strong>${formatNum(data.competitive.sellingPrice)}</strong>.`;
+
+        document.getElementById('strat3-body').innerHTML =
+          `If packaging or ads add <strong>${formatNum(bufferAdd)}</strong> per order (raising total cost to <strong>${formatNum(bufferedCost)}</strong>), shift your selling price up by <strong>${formatNum(priceShiftNeeded)}</strong> (to <strong>${formatNum(adjustedTargetPrice)}</strong>) to preserve your target margin.`;
+      } else {
+        document.getElementById('strat1-body').innerHTML =
+          `后台原价设置为 <strong>${formatNum(data.anchor.sellingPrice)}</strong>，再设置约 <strong>${Math.max(5, discountPct).toFixed(1)}% OFF</strong> 的店铺折扣活动，让前台成交价落在 <strong>${formatNum(data.targetAligned.sellingPrice)}</strong>。买家能看到醒目折扣标签，同时您稳赚 <strong>${formatNum(data.targetAligned.netProfit)}</strong> 单件净利。`;
+
+        document.getElementById('strat2-body').innerHTML =
+          `若在 <strong>${formatNum(data.targetAligned.sellingPrice)}</strong> 基础上叠加 <strong>${formatNum(voucherSample)}</strong> 店铺满减券，单件净利会从 <strong>${formatNum(data.targetAligned.netProfit)}</strong> 降至 <strong>${formatNum(postVoucherProfit)}</strong>。建议将叠加所有卖家优惠后的最低实付底线控制在 <strong>${formatNum(data.competitive.sellingPrice)}</strong> 以上。`;
+
+        document.getElementById('strat3-body').innerHTML =
+          `如果包材或广告每单额外分摊 <strong>${formatNum(bufferAdd)}</strong>（总成本升至 <strong>${formatNum(bufferedCost)}</strong>），建议将目标售价同步上调 <strong>${formatNum(priceShiftNeeded)}</strong>（调至 <strong>${formatNum(adjustedTargetPrice)}</strong>），即可完全保住原有利润率。`;
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // =========================================================================
+    // 6. EVENT HANDLERS & INITIALIZATION
+    // =========================================================================
+    function setTargetPrice(val) {
+      const parsed = Math.max(0.10, Number(val) || 0.10);
+      state.targetPrice = Number(parsed.toFixed(2));
+      document.getElementById('input-target-price').value = state.targetPrice.toFixed(2);
+      const slider = document.getElementById('slider-target-price');
+      if (state.targetPrice > Number(slider.max)) {
+        slider.max = Math.ceil(state.targetPrice * 1.5);
+      }
+      slider.value = state.targetPrice;
+      renderAll();
+    }
+
+    function setLanguage(lang) {
+      state.lang = lang;
+      const btnEn = document.getElementById('lang-en');
+      const btnZh = document.getElementById('lang-zh');
+      if (lang === 'en') {
+        btnEn.className = 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-white text-slate-900 shadow-xs transition cursor-pointer';
+        btnZh.className = 'px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer';
+      } else {
+        btnZh.className = 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-white text-slate-900 shadow-xs transition cursor-pointer';
+        btnEn.className = 'px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer';
+      }
+      renderAll();
+    }
+
+    function setChartMode(mode) {
+      state.chartMode = mode;
+      const btnStacked = document.getElementById('btn-chart-stacked');
+      const btnMargin = document.getElementById('btn-chart-margin');
+      if (mode === 'stacked') {
+        btnStacked.className = 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-white text-slate-900 shadow-xs transition cursor-pointer';
+        btnMargin.className = 'px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer';
+      } else {
+        btnMargin.className = 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-white text-slate-900 shadow-xs transition cursor-pointer';
+        btnStacked.className = 'px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer';
+      }
+      renderAll();
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const banner = document.getElementById('toast-banner');
+      document.getElementById('toast-message').textContent = msg;
+      banner.classList.remove('hidden');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        banner.classList.add('hidden');
+      }, 2800);
+    }
+
+    function bindEvents() {
+      document.getElementById('lang-en').addEventListener('click', () => setLanguage('en'));
+      document.getElementById('lang-zh').addEventListener('click', () => setLanguage('zh'));
+
+      document.getElementById('btn-chart-stacked').addEventListener('click', () => setChartMode('stacked'));
+      document.getElementById('btn-chart-margin').addEventListener('click', () => setChartMode('margin'));
+
+      document.getElementById('input-product-name').addEventListener('input', (e) => {
+        state.productName = e.target.value || 'Product';
+        renderAll();
+      });
+
+      document.getElementById('input-cost').addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        state.productCost = isNaN(val) || val < 0 ? 0 : val;
+        renderAll();
+      });
+
+      document.getElementById('input-fee-rate').addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        state.feeRatePct = isNaN(val) ? 0 : Math.min(95, Math.max(0, val));
+        renderAll();
+      });
+
+      document.getElementById('input-target-margin').addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        state.targetNetMarginPct = isNaN(val) ? 0 : Math.min(90, Math.max(0, val));
+        renderAll();
+      });
+
+      const sliderExtra = document.getElementById('slider-extra-cost');
+      const inputExtra = document.getElementById('input-extra-cost');
+
+      sliderExtra.addEventListener('input', (e) => {
+        state.extraCost = parseFloat(e.target.value) || 0;
+        inputExtra.value = state.extraCost.toFixed(2);
+        renderAll();
+      });
+
+      inputExtra.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        state.extraCost = isNaN(val) || val < 0 ? 0 : val;
+        if (state.extraCost > Number(sliderExtra.max)) {
+          sliderExtra.max = Math.ceil(state.extraCost * 1.5);
+        }
+        sliderExtra.value = state.extraCost;
+        renderAll();
+      });
+
+      document.getElementById('btn-test-buffer').addEventListener('click', () => {
+        state.extraCost = Number((state.extraCost + 0.30).toFixed(2));
+        inputExtra.value = state.extraCost.toFixed(2);
+        if (state.extraCost > Number(sliderExtra.max)) {
+          sliderExtra.max = Math.ceil(state.extraCost * 1.5);
+        }
+        sliderExtra.value = state.extraCost;
+        renderAll();
+      });
+
+      const sliderPrice = document.getElementById('slider-target-price');
+      const inputPrice = document.getElementById('input-target-price');
+
+      sliderPrice.addEventListener('input', (e) => {
+        state.targetPrice = parseFloat(e.target.value) || 0.10;
+        inputPrice.value = state.targetPrice.toFixed(2);
+        renderAll();
+      });
+
+      inputPrice.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        state.targetPrice = isNaN(val) || val <= 0 ? 0.10 : val;
+        if (state.targetPrice > Number(sliderPrice.max)) {
+          sliderPrice.max = Math.ceil(state.targetPrice * 1.5);
+        }
+        sliderPrice.value = state.targetPrice;
+        renderAll();
+      });
+
+      const sliderQty = document.getElementById('slider-order-qty');
+      const inputQty = document.getElementById('input-order-qty');
+
+      sliderQty.addEventListener('input', (e) => {
+        state.orderQty = parseInt(e.target.value, 10) || 1;
+        inputQty.value = state.orderQty;
+        renderAll();
+      });
+
+      inputQty.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value, 10);
+        state.orderQty = isNaN(val) || val < 1 ? 1 : val;
+        if (state.orderQty > Number(sliderQty.max)) {
+          sliderQty.max = Math.ceil(state.orderQty * 1.5);
+        }
+        sliderQty.value = state.orderQty;
+        renderAll();
+      });
+
+      document.getElementById('btn-reset').addEventListener('click', () => {
+        state.productName = 'Smiling Touch Light / 微笑触摸灯';
+        state.productCost = 3.20;
+        state.feeRatePct = 27.0;
+        state.targetNetMarginPct = 18.8;
+        state.extraCost = 0.00;
+        state.targetPrice = 5.90;
+        state.orderQty = 100;
+
+        document.getElementById('input-product-name').value = state.productName;
+        document.getElementById('input-cost').value = '3.20';
+        document.getElementById('input-fee-rate').value = '27.0';
+        document.getElementById('input-target-margin').value = '18.8';
+        document.getElementById('input-extra-cost').value = '0.00';
+        document.getElementById('slider-extra-cost').value = '0.00';
+        document.getElementById('input-target-price').value = '5.90';
+        document.getElementById('slider-target-price').value = '5.90';
+        document.getElementById('input-order-qty').value = '100';
+        document.getElementById('slider-order-qty').value = '100';
+
+        renderAll();
+        showToast(i18n[state.lang].toastReset);
+      });
+
+      document.getElementById('btn-download-html').addEventListener('click', () => {
+        try {
+          const docHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+          const blob = new Blob([docHtml], { type: 'text/html;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'index.html';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          showToast(i18n[state.lang].toastDownloaded);
+        } catch (err) {
+          console.error('Download failed:', err);
+        }
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      bindEvents();
+      renderAll();
+    });
+  </script>
+</body>
+</html>
