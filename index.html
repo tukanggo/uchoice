@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Price & Margin Explorer with AI Analysis</title>
+    <title>Interactive Price & Margin Explorer</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -20,9 +20,9 @@
         <header class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
                 <h1 class="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
-                    <span class="text-[#ee4d2d]">🔥</span> Interactive Price & Margin Explorer with AI Analysis
+                    <span class="text-[#ee4d2d]">📊</span> Interactive Price & Margin Explorer
                 </h1>
-                <p class="text-slate-500 text-sm mt-1">输入商品名称、成本与扣点，Gemini AI 智能反推目标利润率、售价、营销文案，并提供精美档位明细表与堆叠图表</p>
+                <p class="text-slate-500 text-sm mt-1">输入商品名称、成本与扣点，实时计算保本底价、净利润率、档位明细表与价格结构堆叠图</p>
             </div>
             <div class="flex gap-2">
                 <button onclick="setLanguage('zh')" id="btn-zh" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#ee4d2d] text-white transition">中文</button>
@@ -40,58 +40,53 @@
 
                 <div class="space-y-3">
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">Gemini API Key (可选)</label>
-                        <input type="password" id="input-api-key" placeholder="AIzaSy... (留空则使用智能引擎)" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-[#ee4d2d] focus:border-[#ee4d2d]">
-                    </div>
-
-                    <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1" data-i18n="lbl_product_name">商品名称 (Product Name)</label>
-                        <input type="text" id="input-product-name" value="Smiling Touch Light" class="w-full px-4 py-2 border border-slate-300 rounded-xl text-sm font-medium">
+                        <input type="text" id="input-product-name" value="Smiling Touch Light" oninput="updateAll()" class="w-full px-4 py-2 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#ee4d2d] focus:border-[#ee4d2d]">
                     </div>
 
                     <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1" data-i18n="lbl_cost">商品拿货成本 (Product Cost)</label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">RM</span>
-                            <input type="number" id="input-cost" value="3.20" step="0.01" min="0" class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-xl text-sm font-medium">
+                            <input type="number" id="input-cost" value="3.20" step="0.01" min="0" oninput="updateAll()" class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#ee4d2d] focus:border-[#ee4d2d]">
                         </div>
                     </div>
 
                     <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1" data-i18n="lbl_fee">平台总扣点率 (%) (Platform Fee Rate)</label>
-                        <input type="number" id="input-fee" value="27.0" step="0.1" class="w-full px-4 py-2 border border-slate-300 rounded-xl text-sm font-medium">
+                        <input type="number" id="input-fee" value="27.0" step="0.1" min="0" max="99.9" oninput="updateAll()" class="w-full px-4 py-2 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#ee4d2d] focus:border-[#ee4d2d]">
                     </div>
 
                     <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1" data-i18n="lbl_other">其他成本/包材/广告 (Other Costs)</label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">RM</span>
-                            <input type="number" id="input-other" value="0.00" step="0.01" min="0" class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-xl text-sm font-medium">
+                            <input type="number" id="input-other" value="0.00" step="0.01" min="0" oninput="updateAll()" class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#ee4d2d] focus:border-[#ee4d2d]">
                         </div>
                     </div>
 
-                    <button onclick="submitToGeminiAI()" id="btn-submit" class="w-full py-3 bg-[#ee4d2d] hover:bg-[#d73211] text-white font-semibold rounded-xl shadow transition flex items-center justify-center gap-2 mt-2">
-                        <span>✨</span> <span data-i18n="btn_submit">提交给 Gemini AI 分析并推荐</span>
+                    <button onclick="applyRecommendedBenchmark()" id="btn-benchmark" class="w-full py-3 bg-[#ee4d2d] hover:bg-[#d73211] text-white font-semibold rounded-xl shadow transition flex items-center justify-center gap-2 mt-2">
+                        <span>🎯</span> <span data-i18n="btn_benchmark">套用建议基准利润率 (18.8%)</span>
                     </button>
                 </div>
 
                 <!-- 保本价卡片 -->
                 <div class="bg-orange-50 border border-orange-100 rounded-xl p-4 space-y-1 mt-4">
                     <div class="text-xs text-orange-700 font-semibold uppercase" data-i18n="card_breakeven">绝对保本底价 (Breakeven Floor)</div>
-                    <div id="res-breakeven" class="text-xl font-extrabold text-orange-900">4.38</div>
+                    <div id="res-breakeven" class="text-xl font-extrabold text-orange-900">RM 4.38</div>
                 </div>
             </div>
 
-            <!-- 右侧：AI 原位响应、微调、图表与截图式明细卡片 -->
+            <!-- 右侧：财务摘要、微调、图表与档位明细卡片 -->
             <div class="space-y-6 lg:col-span-2">
                 
-                <!-- 2. AI 智能分析与理由 -->
+                <!-- 2. 本地财务定价摘要 -->
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-3">
                     <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                        <span>💡</span> <span data-i18n="ai_reason_title">2. AI 智能定价理由与财务报告 (AI Reasoning)</span>
+                        <span>💡</span> <span data-i18n="summary_title">2. 成本结构与定价摘要 (Pricing Summary)</span>
                     </h2>
-                    <div id="ai-reasoning-box" class="text-sm text-slate-700 leading-relaxed bg-amber-50 border border-amber-200 rounded-xl p-4">
-                        请在左侧输入商品参数并点击提交，Gemini AI 将在此处原位实时返回针对该商品的精准财务分析、目标利润率与售价建议。
+                    <div id="pricing-summary-box" class="text-sm text-slate-700 leading-relaxed bg-amber-50 border border-amber-200 rounded-xl p-4">
+                        正在加载财务测算结果...
                     </div>
                 </div>
 
@@ -114,7 +109,7 @@
                             <label class="block text-xs font-medium text-slate-600 mb-1" data-i18n="lbl_custom_price">自定义目标售价 (Custom Selling Price)</label>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">RM</span>
-                                <input type="number" id="input-custom-price" value="5.90" step="0.01" oninput="onCustomPriceChange()" class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-xl font-bold text-[#ee4d2d] text-sm">
+                                <input type="number" id="input-custom-price" value="5.90" step="0.01" min="0" oninput="onCustomPriceChange()" class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-xl font-bold text-[#ee4d2d] text-sm focus:ring-2 focus:ring-[#ee4d2d] focus:border-[#ee4d2d]">
                             </div>
                         </div>
                     </div>
@@ -146,7 +141,7 @@
                     </div>
                 </div>
 
-                <!-- 5. 还原截图中精美的 Recommended Pricing Tiers Breakdown 卡片列表 -->
+                <!-- 5. 推荐价格档位明细表 -->
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
                     <div class="flex justify-between items-center border-b pb-3">
                         <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
@@ -173,22 +168,22 @@
                     </div>
                 </div>
 
-                <!-- 6. Gemini AI 营销文案 -->
+                <!-- 6. 商品上架文案模板 -->
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
                     <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                        <span>✨</span> <span data-i18n="ai_content_title">6. Gemini AI 战略洞察与营销文案</span>
+                        <span>📝</span> <span data-i18n="template_title">6. 商品上架文案模板 (Listing Template)</span>
                     </h2>
                     <div class="space-y-3 text-sm">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="lbl_gen_title">Shopee 优化标题 (Optimized Title)</label>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="lbl_gen_title">优化商品标题 (Product Title)</label>
                             <div id="gen-title" class="p-3 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 select-all">-</div>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="lbl_gen_points">核心卖点 (Key Selling Points)</label>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="lbl_gen_points">核心卖点占位 (Key Selling Points)</label>
                             <div id="gen-points" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 space-y-1">-</div>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="lbl_gen_desc">详情页营销文案 (Marketing Description)</label>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="lbl_gen_desc">详情页说明模板 (Description Template)</label>
                             <div id="gen-desc" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 whitespace-pre-line text-xs">-</div>
                         </div>
                     </div>
@@ -212,9 +207,9 @@
                 lbl_cost: "商品拿货成本 (Product Cost)",
                 lbl_fee: "平台总扣点率 (%) (Platform Fee Rate)",
                 lbl_other: "其他成本/包材/广告 (Other Costs)",
-                btn_submit: "提交给 Gemini AI 分析并推荐",
+                btn_benchmark: "套用建议基准利润率 (18.8%)",
                 card_breakeven: "绝对保本底价 (Breakeven Floor)",
-                ai_reason_title: "2. AI 智能定价理由与财务报告 (AI Reasoning)",
+                summary_title: "2. 成本结构与定价摘要 (Pricing Summary)",
                 adjust_title: "3. 用户实时微调与利润预览 (Adjust & Select Price)",
                 lbl_target_margin: "目标净利润率 (%) (Target Margin)",
                 lbl_custom_price: "自定义目标售价 (Custom Selling Price)",
@@ -229,10 +224,10 @@
                 th_cost: "总成本",
                 th_profit: "单件净利润 (利润率/ROI)",
                 th_total: "总利润 (批量)",
-                ai_content_title: "6. Gemini AI 战略洞察与营销文案",
-                lbl_gen_title: "Shopee 优化标题 (Optimized Title)",
-                lbl_gen_points: "核心卖点 (Key Selling Points)",
-                lbl_gen_desc: "详情页营销文案 (Marketing Description)"
+                template_title: "6. 商品上架文案模板 (Listing Template)",
+                lbl_gen_title: "优化商品标题 (Product Title)",
+                lbl_gen_points: "核心卖点占位 (Key Selling Points)",
+                lbl_gen_desc: "详情页说明模板 (Description Template)"
             },
             en: {
                 input_title: "1. Product Parameters",
@@ -240,9 +235,9 @@
                 lbl_cost: "Product Cost",
                 lbl_fee: "Platform Fee Rate (%)",
                 lbl_other: "Other Costs (Packaging/Ads)",
-                btn_submit: "Submit to Gemini AI",
+                btn_benchmark: "Apply Benchmark Margin (18.8%)",
                 card_breakeven: "Breakeven Floor",
-                ai_reason_title: "2. AI Pricing Reasoning & Report",
+                summary_title: "2. Cost Structure & Pricing Summary",
                 adjust_title: "3. User Adjust & Profit Preview",
                 lbl_target_margin: "Target Net Margin (%)",
                 lbl_custom_price: "Custom Selling Price",
@@ -257,17 +252,26 @@
                 th_cost: "Total Cost",
                 th_profit: "Net Profit / Unit",
                 th_total: "Total Profit (Qty)",
-                ai_content_title: "6. Gemini AI Strategic Insights & Copywriting",
-                lbl_gen_title: "Shopee Optimized Title",
+                template_title: "6. Listing Copy Template",
+                lbl_gen_title: "Optimized Product Title",
                 lbl_gen_points: "Key Selling Points",
-                lbl_gen_desc: "Marketing Description"
+                lbl_gen_desc: "Description Template"
             }
         };
 
+        function round(value, decimals) {
+            const factor = Math.pow(10, decimals);
+            return Math.round((value + Number.EPSILON) * factor) / factor;
+        }
+
         function setLanguage(lang) {
             currentLang = lang;
-            document.getElementById('btn-zh').className = lang === 'zh' ? 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#ee4d2d] text-white transition' : 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
-            document.getElementById('btn-en').className = lang === 'en' ? 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#ee4d2d] text-white transition' : 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
+            document.getElementById('btn-zh').className = lang === 'zh'
+                ? 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#ee4d2d] text-white transition'
+                : 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
+            document.getElementById('btn-en').className = lang === 'en'
+                ? 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#ee4d2d] text-white transition'
+                : 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
             
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
@@ -278,134 +282,77 @@
             updateAll();
         }
 
-        async function submitToGeminiAI() {
-            const btn = document.getElementById('btn-submit');
-            btn.innerText = currentLang === 'zh' ? "Gemini AI 正在分析中..." : "Gemini AI analyzing...";
-            btn.disabled = true;
-
-            const productName = document.getElementById('input-product-name').value || "Product";
+        function applyRecommendedBenchmark() {
             const cost = parseFloat(document.getElementById('input-cost').value) || 0;
-            const feeRateVal = parseFloat(document.getElementById('input-fee').value) || 27.0;
             const otherCost = parseFloat(document.getElementById('input-other').value) || 0;
-            const apiKey = document.getElementById('input-api-key').value.trim();
+            const totalCost = cost + otherCost;
+            const feeRateVal = parseFloat(document.getElementById('input-fee').value) || 0;
+            const feeRate = Math.min(Math.max(feeRateVal / 100.0, 0), 0.99);
 
-            currentTotalCost = cost + otherCost;
-            currentFeeRate = feeRateVal / 100.0;
+            const targetMargin = 0.188;
+            const denom = 1 - feeRate - targetMargin;
+            const suggestedPrice = denom > 0 ? round(totalCost / denom, 2) : round(totalCost * 1.5, 2);
 
-            const breakeven = (1 - currentFeeRate) > 0 ? currentTotalCost / (1 - currentFeeRate) : currentTotalCost;
-            document.getElementById('res-breakeven').innerText = breakeven.toFixed(2);
-
-            let reasoning = "";
-            let suggestedMargin = 18.8;
-            let suggestedPrice = 5.90;
-            let title = "";
-            let points = [];
-            let description = "";
-
-            if (apiKey) {
-                try {
-                    const prompt = `Act as an expert e-commerce financial analyst and copywriter for Shopee.
-Product Name: ${productName}
-Base Cost: ${cost}
-Other Cost: ${otherCost}
-Total Cost: ${currentTotalCost}
-Platform Fee Rate: ${feeRateVal}%
-
-Task:
-1. Suggest a realistic target net margin percentage (e.g. 15% to 30%).
-2. Calculate the optimal custom selling price based on reverse margin formula.
-3. Provide a brief financial reasoning/analysis (in ${currentLang === 'zh' ? 'Simplified Chinese' : 'English'}).
-4. Generate an optimized Shopee product title, 3 key selling points, and a marketing description.
-
-Output MUST be strictly in valid JSON format with keys: "suggested_margin_pct" (float), "suggested_price" (float), "reasoning" (string), "title" (string), "points" (array of strings), "description" (string).`;
-
-                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                    });
-
-                    const data = await res.json();
-                    const textOutput = data.candidates[0].content.parts[0].text;
-                    const cleanJson = textOutput.replace(/```json/g, '').replace(/```/g, '').trim();
-                    const parsed = JSON.parse(cleanJson);
-
-                    suggestedMargin = parsed.suggested_margin_pct;
-                    suggestedPrice = parsed.suggested_price;
-                    reasoning = parsed.reasoning;
-                    title = parsed.title;
-                    points = parsed.points;
-                    description = parsed.description;
-
-                } catch (err) {
-                    console.error("Gemini API call error:", err);
-                }
-            }
-
-            if (!reasoning) {
-                suggestedMargin = 18.8;
-                suggestedPrice = round((currentTotalCost / (1 - currentFeeRate - 0.188)), 2);
-                if (currentLang === 'zh') {
-                    reasoning = `💡 <b>Gemini AI 财务深度分析：</b> 商品「<b>${productName}</b>」的总成本为 <b>${currentTotalCost.toFixed(2)}</b>（拿货 ${cost} + 其他 ${otherCost}）。平台扣点高达 <b>${feeRateVal}%</b>，绝对保本底价为 <b>${breakeven.toFixed(2)}</b>。<br>🎯 <b>AI 策略推荐：</b> 推荐设定 <b>18.8%</b> 的健康净利润率，建议零售价定在 <b>${suggestedPrice.toFixed(2)}</b>（单件净利润 1.11，ROI 34.6%）。`;
-                    title = `🔥 [Ready Stock] ${productName} - High Quality Gadget | Fast Shipping Malaysia`;
-                    points = [
-                        "⚡ 高效实用：精选高品质材质，专为日常生活设计。",
-                        "🛡️ 品质保障：严格质检，经久耐用。",
-                        "🇲🇾 本地现货：马来西亚仓库闪电发货，售后无忧！"
-                    ];
-                    description = `📦 【产品详情】\n欢迎光临！这款 ${productName} 是您提升生活品质的必备好物。现货供应，下单后 24 小时内极速发出！`;
-                } else {
-                    reasoning = `💡 <b>Gemini AI Financial Analysis:</b> Product "<b>${productName}</b>" has a total cost of <b>${currentTotalCost.toFixed(2)}</b>. With a platform fee rate of <b>${feeRateVal}%</b>, your breakeven floor is <b>${breakeven.toFixed(2)}</b>.<br>🎯 <b>Strategy:</b> Targeting an <b>18.8%</b> net margin suggests an ideal selling price of <b>${suggestedPrice.toFixed(2)}</b>.`;
-                    title = `🔥 [Ready Stock] ${productName} - Premium Quality | Fast Shipping`;
-                    points = [
-                        "⚡ High Performance: Built with top-grade materials.",
-                        "🛡️ Quality Assured: Rigorously tested for durability.",
-                        "🇲🇾 Local Ready Stock: Fast shipping from Malaysia warehouse."
-                    ];
-                    description = `📦 [Product Description]\nWelcome! The ${productName} is designed to elevate your daily routine.`;
-                }
-            }
-
-            document.getElementById('ai-reasoning-box').innerHTML = reasoning;
-            document.getElementById('input-target-margin').value = suggestedMargin;
-            document.getElementById('target-margin-val').innerText = suggestedMargin + '%';
+            document.getElementById('input-target-margin').value = (targetMargin * 100).toFixed(1);
+            document.getElementById('target-margin-val').innerText = (targetMargin * 100).toFixed(1) + '%';
             document.getElementById('input-custom-price').value = suggestedPrice.toFixed(2);
-
-            document.getElementById('gen-title').innerText = title;
-            document.getElementById('gen-points').innerHTML = points.map(p => `<div>• ${p}</div>`).join('');
-            document.getElementById('gen-desc').innerText = description;
-
             updateAll();
-
-            btn.innerText = currentLang === 'zh' ? "提交给 Gemini AI 分析并推荐" : "Submit to Gemini AI";
-            btn.disabled = false;
         }
 
         function onMarginSliderChange() {
-            const marginPct = parseFloat(document.getElementById('input-target-margin').value);
-            document.getElementById('target-margin-val').innerText = marginPct + '%';
+            const marginPct = parseFloat(document.getElementById('input-target-margin').value) || 0;
+            document.getElementById('target-margin-val').innerText = marginPct.toFixed(1) + '%';
 
             const marginDecimal = marginPct / 100.0;
-            const calculatedPrice = (1 - currentFeeRate - marginDecimal) > 0 
-                ? currentTotalCost / (1 - currentFeeRate - marginDecimal) 
-                : currentTotalCost;
+            const denom = 1 - currentFeeRate - marginDecimal;
+            const calculatedPrice = denom > 0 ? currentTotalCost / denom : currentTotalCost;
 
             document.getElementById('input-custom-price').value = calculatedPrice.toFixed(2);
-            updateAll();
+            updateSummaryAndVisuals(calculatedPrice);
         }
 
         function onCustomPriceChange() {
-            updateAll();
+            const price = parseFloat(document.getElementById('input-custom-price').value) || 0;
+            const feeAmt = price * currentFeeRate;
+            const netProfit = price - feeAmt - currentTotalCost;
+            const netMargin = price > 0 ? Math.min(Math.max((netProfit / price) * 100, 0), 50) : 0;
+
+            document.getElementById('input-target-margin').value = netMargin.toFixed(1);
+            document.getElementById('target-margin-val').innerText = netMargin.toFixed(1) + '%';
+            updateSummaryAndVisuals(price);
         }
 
         function updateAll() {
             const cost = parseFloat(document.getElementById('input-cost').value) || 0;
             const otherCost = parseFloat(document.getElementById('input-other').value) || 0;
             currentTotalCost = cost + otherCost;
-            const feeRateVal = parseFloat(document.getElementById('input-fee').value) || 27.0;
-            currentFeeRate = feeRateVal / 100.0;
+
+            const feeRateVal = parseFloat(document.getElementById('input-fee').value) || 0;
+            currentFeeRate = Math.min(Math.max(feeRateVal / 100.0, 0), 0.99);
+
+            const denomBreakeven = 1 - currentFeeRate;
+            const breakeven = denomBreakeven > 0 ? currentTotalCost / denomBreakeven : currentTotalCost;
+            document.getElementById('res-breakeven').innerText = "RM " + breakeven.toFixed(2);
 
             const price = parseFloat(document.getElementById('input-custom-price').value) || 0;
+            updateSummaryAndVisuals(price);
+            updateTemplateCopy();
+        }
+
+        function updateSummaryAndVisuals(price) {
+            const productName = document.getElementById('input-product-name').value.trim() || "Product";
+            const cost = parseFloat(document.getElementById('input-cost').value) || 0;
+            const otherCost = parseFloat(document.getElementById('input-other').value) || 0;
+            const feeRateVal = (currentFeeRate * 100).toFixed(1);
+
+            const denomBreakeven = 1 - currentFeeRate;
+            const breakeven = denomBreakeven > 0 ? currentTotalCost / denomBreakeven : currentTotalCost;
+
+            const denomRef = 1 - currentFeeRate - 0.188;
+            const refPrice = denomRef > 0 ? currentTotalCost / denomRef : breakeven * 1.25;
+            const refProfit = refPrice - (refPrice * currentFeeRate) - currentTotalCost;
+            const refRoi = currentTotalCost > 0 ? (refProfit / currentTotalCost) * 100 : 0;
+
             const feeAmt = price * currentFeeRate;
             const netProfit = price - feeAmt - currentTotalCost;
             const netMargin = price > 0 ? (netProfit / price) * 100 : 0;
@@ -415,21 +362,46 @@ Output MUST be strictly in valid JSON format with keys: "suggested_margin_pct" (
             document.getElementById('preview-margin').innerText = netMargin.toFixed(1) + '%';
             document.getElementById('preview-roi').innerText = roi.toFixed(1) + '%';
 
-            document.getElementById('input-target-margin').value = netMargin.toFixed(1);
-            document.getElementById('target-margin-val').innerText = netMargin.toFixed(1) + '%';
+            const summaryBox = document.getElementById('pricing-summary-box');
+            if (currentLang === 'zh') {
+                summaryBox.innerHTML = `商品「<b>${productName}</b>」总成本为 <b>RM ${currentTotalCost.toFixed(2)}</b>（拿货 RM ${cost.toFixed(2)} + 其他 RM ${otherCost.toFixed(2)}），平台扣点率为 <b>${feeRateVal}%</b>，绝对保本底价为 <b>RM ${breakeven.toFixed(2)}</b>。<br>参考 <b>18.8%</b> 净利润率基准，建议售价约为 <b>RM ${refPrice.toFixed(2)}</b>（单件净利润 RM ${refProfit.toFixed(2)}，成本回报率 ${refRoi.toFixed(1)}%）。`;
+            } else {
+                summaryBox.innerHTML = `Product "<b>${productName}</b>" has a total cost of <b>RM ${currentTotalCost.toFixed(2)}</b> (Base RM ${cost.toFixed(2)} + Other RM ${otherCost.toFixed(2)}) with a <b>${feeRateVal}%</b> platform fee rate and a breakeven floor of <b>RM ${breakeven.toFixed(2)}</b>.<br>At an <b>18.8%</b> net margin benchmark, the suggested listing price is around <b>RM ${refPrice.toFixed(2)}</b> (Net profit RM ${refProfit.toFixed(2)}, ROI ${refRoi.toFixed(1)}%).`;
+            }
 
             updateChart();
             updateTiersCards();
+        }
+
+        function updateTemplateCopy() {
+            const productName = document.getElementById('input-product-name').value.trim() || "Product";
+            if (currentLang === 'zh') {
+                document.getElementById('gen-title').innerText = `[现货] ${productName} | 实用好物 快速发货`;
+                document.getElementById('gen-points').innerHTML = `
+                    <div>• 卖点 1：[填写核心功能或材质优势]</div>
+                    <div>• 卖点 2：[填写适用场景或尺寸规格]</div>
+                    <div>• 卖点 3：[填写发货时效或售后保障]</div>
+                `;
+                document.getElementById('gen-desc').innerText = `【商品名称】${productName}\n【规格说明】请在此补充尺寸、颜色、包装清单与使用注意事项。\n【发货说明】下单后尽快安排打包发货，收货前请核对商品状态。`;
+            } else {
+                document.getElementById('gen-title').innerText = `[Ready Stock] ${productName} | Everyday Essential & Fast Shipping`;
+                document.getElementById('gen-points').innerHTML = `
+                    <div>• Point 1: [Add key feature or material benefit]</div>
+                    <div>• Point 2: [Add use case, size, or specification]</div>
+                    <div>• Point 3: [Add dispatch speed or warranty details]</div>
+                `;
+                document.getElementById('gen-desc').innerText = `[Product Name] ${productName}\n[Specifications] Add dimensions, variants, included items, and care notes here.\n[Shipping] Dispatched promptly after order confirmation.`;
+            }
         }
 
         function updateChart() {
             const ctx = document.getElementById('marginChart').getContext('2d');
             if (marginChart) { marginChart.destroy(); }
 
-            const feePctDisplay = (currentFeeRate * 100).toFixed(0);
+            const feePctDisplay = (currentFeeRate * 100).toFixed(1);
             const tiers = getTiersData();
 
-            const labels = tiers.map(t => `${t.price.toFixed(2)} (${t.title})`);
+            const labels = tiers.map(t => `RM ${t.price.toFixed(2)} (${t.title})`);
             const costData = tiers.map(t => t.cost.toFixed(2));
             const feeData = tiers.map(t => t.fee.toFixed(2));
             const profitData = tiers.map(t => Math.max(0, t.profit).toFixed(2));
@@ -440,7 +412,7 @@ Output MUST be strictly in valid JSON format with keys: "suggested_margin_pct" (
                     labels: labels,
                     datasets: [
                         { label: currentLang === 'zh' ? '总成本 (Cost)' : 'Cost', data: costData, backgroundColor: '#64748b' },
-                        { label: currentLang === 'zh' ? `平台扣点 ${feePctDisplay}% (Fee)` : `Fee`, data: feeData, backgroundColor: '#f59e0b' },
+                        { label: currentLang === 'zh' ? `平台扣点 ${feePctDisplay}% (Fee)` : `Fee (${feePctDisplay}%)`, data: feeData, backgroundColor: '#f59e0b' },
                         { label: currentLang === 'zh' ? '单件净利润 (Net Profit)' : 'Net Profit', data: profitData, backgroundColor: '#10b981' }
                     ]
                 },
@@ -456,60 +428,58 @@ Output MUST be strictly in valid JSON format with keys: "suggested_margin_pct" (
             });
         }
 
+        function calcTierPrice(marginDecimal) {
+            const denom = 1 - currentFeeRate - marginDecimal;
+            return denom > 0 ? currentTotalCost / denom : currentTotalCost;
+        }
+
         function getTiersData() {
-            const breakeven = currentTotalCost / (1 - currentFeeRate);
-            const customMargin = parseFloat(document.getElementById('input-target-margin').value) / 100.0;
-            const customPriceVal = parseFloat(document.getElementById('input-custom-price').value) || (currentTotalCost / (1 - currentFeeRate - 0.188));
+            const customMargin = (parseFloat(document.getElementById('input-target-margin').value) || 0) / 100.0;
+            const customPriceVal = parseFloat(document.getElementById('input-custom-price').value) || 0;
+            const qty = Math.max(1, parseInt(document.getElementById('input-qty').value) || 100);
 
             return [
-                { 
-                    title: currentLang === 'zh' ? '保本底价' : 'Break-Even Floor', 
-                    desc: currentLang === 'zh' ? '绝对不可低于此价格' : 'Never price below this floor', 
-                    margin: 0.0, 
-                    price: breakeven,
-                    isGoal: false 
+                {
+                    title: currentLang === 'zh' ? '保本底价' : 'Break-Even Floor',
+                    desc: currentLang === 'zh' ? '绝对不可低于此价格' : 'Never price below this floor',
+                    price: calcTierPrice(0.0),
+                    isGoal: false
                 },
-                { 
-                    title: currentLang === 'zh' ? '引流爆款' : 'Traffic Driver', 
-                    desc: currentLang === 'zh' ? '闪购活动 / 引流款 SKU' : 'Flash deals / traffic-driver SKU', 
-                    margin: 0.10, 
-                    price: currentTotalCost / (1 - currentFeeRate - 0.10),
-                    isGoal: false 
+                {
+                    title: currentLang === 'zh' ? '引流爆款' : 'Traffic Driver',
+                    desc: currentLang === 'zh' ? '闪购活动 / 引流款 SKU' : 'Flash deals / traffic-driver SKU',
+                    price: calcTierPrice(0.10),
+                    isGoal: false
                 },
-                { 
-                    title: currentLang === 'zh' ? '日常好价' : 'Competitive Everyday', 
-                    desc: currentLang === 'zh' ? '日常高性价比竞争标价' : 'Competitive everyday listing price', 
-                    margin: 0.15, 
-                    price: currentTotalCost / (1 - currentFeeRate - 0.15),
-                    isGoal: false 
+                {
+                    title: currentLang === 'zh' ? '日常好价' : 'Competitive Everyday',
+                    desc: currentLang === 'zh' ? '日常高性价比竞争标价' : 'Competitive everyday listing price',
+                    price: calcTierPrice(0.15),
+                    isGoal: false
                 },
-                { 
-                    title: currentLang === 'zh' ? '目标利润率' : 'Target Margin Goal', 
-                    desc: currentLang === 'zh' ? '与您当前设定的目标净利润率一致' : 'Price matching your specified target net margin', 
-                    margin: customMargin, 
+                {
+                    title: currentLang === 'zh' ? '目标利润率' : 'Target Margin Goal',
+                    desc: currentLang === 'zh' ? '与您当前设定的目标净利润率一致' : 'Price matching your specified target net margin',
                     price: customPriceVal,
-                    isGoal: true 
+                    isGoal: true
                 },
-                { 
-                    title: currentLang === 'zh' ? '标准标价' : 'Standard Listing', 
-                    desc: currentLang === 'zh' ? '预留优惠券与广告费缓冲空间' : 'Leaves buffer for vouchers & ads', 
-                    margin: 0.25, 
-                    price: currentTotalCost / (1 - currentFeeRate - 0.25),
-                    isGoal: false 
+                {
+                    title: currentLang === 'zh' ? '标准标价' : 'Standard Listing',
+                    desc: currentLang === 'zh' ? '预留优惠券与广告费缓冲空间' : 'Leaves buffer for vouchers & ads',
+                    price: calcTierPrice(0.25),
+                    isGoal: false
                 },
-                { 
-                    title: currentLang === 'zh' ? '原价锚点' : 'Anchor Price', 
-                    desc: currentLang === 'zh' ? '高标价再打折促销策略' : 'List high & run discount promo to target price', 
-                    margin: 0.30, 
-                    price: currentTotalCost / (1 - currentFeeRate - 0.30),
-                    isGoal: false 
+                {
+                    title: currentLang === 'zh' ? '原价锚点' : 'Anchor Price',
+                    desc: currentLang === 'zh' ? '高标价再打折促销策略' : 'List high & run discount promo to target price',
+                    price: calcTierPrice(0.30),
+                    isGoal: false
                 }
             ].map(t => {
                 const fee = t.price * currentFeeRate;
                 const profit = t.price - fee - currentTotalCost;
                 const marginPct = t.price > 0 ? (profit / t.price) * 100 : 0;
                 const roiPct = currentTotalCost > 0 ? (profit / currentTotalCost) * 100 : 0;
-                const qty = parseInt(document.getElementById('input-qty').value) || 100;
                 const totalProfit = profit * qty;
                 return { ...t, fee, profit, marginPct, roiPct, totalProfit, cost: currentTotalCost };
             });
@@ -524,7 +494,12 @@ Output MUST be strictly in valid JSON format with keys: "suggested_margin_pct" (
                 const row = document.createElement('div');
                 row.className = "grid grid-cols-7 items-center py-4 px-2 hover:bg-slate-50 transition rounded-xl";
                 
-                let goalBadge = t.isGoal ? `<span class="ml-2 px-2 py-0.5 bg-[#ee4d2d] text-white text-[10px] font-bold rounded-full">Goal Aligned</span>` : '';
+                const goalBadge = t.isGoal
+                    ? `<span class="ml-2 px-2 py-0.5 bg-[#ee4d2d] text-white text-[10px] font-bold rounded-full">Goal Aligned</span>`
+                    : '';
+
+                const profitColor = t.profit >= 0 ? 'text-emerald-600' : 'text-rose-600';
+                const totalProfitColor = t.totalProfit >= 0 ? 'text-emerald-700' : 'text-rose-700';
 
                 row.innerHTML = `
                     <div class="col-span-2 space-y-0.5">
@@ -535,17 +510,13 @@ Output MUST be strictly in valid JSON format with keys: "suggested_margin_pct" (
                     <div class="text-right text-slate-600 text-sm">RM ${t.fee.toFixed(2)}</div>
                     <div class="text-right text-slate-600 text-sm">RM ${t.cost.toFixed(2)}</div>
                     <div class="text-right space-y-0.5">
-                        <div class="font-bold text-emerald-600 text-sm">RM ${t.profit.toFixed(2)}</div>
+                        <div class="font-bold ${profitColor} text-sm">RM ${t.profit.toFixed(2)}</div>
                         <div class="text-xs text-indigo-600 font-medium">${t.marginPct.toFixed(1)}% | <span class="text-amber-600">${t.roiPct.toFixed(1)}%</span></div>
                     </div>
-                    <div class="text-right font-extrabold text-emerald-700 text-sm">RM ${t.totalProfit.toFixed(2)}</div>
+                    <div class="text-right font-extrabold ${totalProfitColor} text-sm">RM ${t.totalProfit.toFixed(2)}</div>
                 `;
                 container.appendChild(row);
             });
-        }
-
-        function round(value, decimals) {
-            return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
         }
 
         window.onload = function() {
