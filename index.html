@@ -80,7 +80,7 @@
             <!-- 右侧：财务摘要、微调、图表与档位明细卡片 -->
             <div class="space-y-6 lg:col-span-2">
                 
-                <!-- 2. 本地财务定价摘要 -->
+                <!-- 2. 成本结构与定价摘要 -->
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-3">
                     <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
                         <span>💡</span> <span data-i18n="summary_title">2. 成本结构与定价摘要 (Pricing Summary)</span>
@@ -168,27 +168,6 @@
                     </div>
                 </div>
 
-                <!-- 6. 商品上架文案模板 -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
-                    <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                        <span>📝</span> <span data-i18n="template_title">6. 商品上架文案模板 (Listing Template)</span>
-                    </h2>
-                    <div class="space-y-3 text-sm">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="lbl_gen_title">优化商品标题 (Product Title)</label>
-                            <div id="gen-title" class="p-3 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 select-all">-</div>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="lbl_gen_points">核心卖点占位 (Key Selling Points)</label>
-                            <div id="gen-points" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 space-y-1">-</div>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="lbl_gen_desc">详情页说明模板 (Description Template)</label>
-                            <div id="gen-desc" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 whitespace-pre-line text-xs">-</div>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
 
@@ -223,11 +202,7 @@
                 th_fee: "平台扣点",
                 th_cost: "总成本",
                 th_profit: "单件净利润 (利润率/ROI)",
-                th_total: "总利润 (批量)",
-                template_title: "6. 商品上架文案模板 (Listing Template)",
-                lbl_gen_title: "优化商品标题 (Product Title)",
-                lbl_gen_points: "核心卖点占位 (Key Selling Points)",
-                lbl_gen_desc: "详情页说明模板 (Description Template)"
+                th_total: "总利润 (批量)"
             },
             en: {
                 input_title: "1. Product Parameters",
@@ -251,11 +226,7 @@
                 th_fee: "Platform Fee",
                 th_cost: "Total Cost",
                 th_profit: "Net Profit / Unit",
-                th_total: "Total Profit (Qty)",
-                template_title: "6. Listing Copy Template",
-                lbl_gen_title: "Optimized Product Title",
-                lbl_gen_points: "Key Selling Points",
-                lbl_gen_desc: "Description Template"
+                th_total: "Total Profit (Qty)"
             }
         };
 
@@ -336,7 +307,6 @@
 
             const price = parseFloat(document.getElementById('input-custom-price').value) || 0;
             updateSummaryAndVisuals(price);
-            updateTemplateCopy();
         }
 
         function updateSummaryAndVisuals(price) {
@@ -371,27 +341,6 @@
 
             updateChart();
             updateTiersCards();
-        }
-
-        function updateTemplateCopy() {
-            const productName = document.getElementById('input-product-name').value.trim() || "Product";
-            if (currentLang === 'zh') {
-                document.getElementById('gen-title').innerText = `[现货] ${productName} | 实用好物 快速发货`;
-                document.getElementById('gen-points').innerHTML = `
-                    <div>• 卖点 1：[填写核心功能或材质优势]</div>
-                    <div>• 卖点 2：[填写适用场景或尺寸规格]</div>
-                    <div>• 卖点 3：[填写发货时效或售后保障]</div>
-                `;
-                document.getElementById('gen-desc').innerText = `【商品名称】${productName}\n【规格说明】请在此补充尺寸、颜色、包装清单与使用注意事项。\n【发货说明】下单后尽快安排打包发货，收货前请核对商品状态。`;
-            } else {
-                document.getElementById('gen-title').innerText = `[Ready Stock] ${productName} | Everyday Essential & Fast Shipping`;
-                document.getElementById('gen-points').innerHTML = `
-                    <div>• Point 1: [Add key feature or material benefit]</div>
-                    <div>• Point 2: [Add use case, size, or specification]</div>
-                    <div>• Point 3: [Add dispatch speed or warranty details]</div>
-                `;
-                document.getElementById('gen-desc').innerText = `[Product Name] ${productName}\n[Specifications] Add dimensions, variants, included items, and care notes here.\n[Shipping] Dispatched promptly after order confirmation.`;
-            }
         }
 
         function updateChart() {
@@ -434,7 +383,6 @@
         }
 
         function getTiersData() {
-            const customMargin = (parseFloat(document.getElementById('input-target-margin').value) || 0) / 100.0;
             const customPriceVal = parseFloat(document.getElementById('input-custom-price').value) || 0;
             const qty = Math.max(1, parseInt(document.getElementById('input-qty').value) || 100);
 
